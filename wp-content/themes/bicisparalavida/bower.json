@@ -1,0 +1,14 @@
+{
+  "name": "ungrynerd",
+  "homepage": "http://ungrynerd.com/",
+  "authors": [
+    "Daniel Aguilar (ungrynerd.com)"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "owl.carousel": "^2.3.3",
+    "normalize-css": "^7.0.0"
+  },
+  "overrides": {}
+}

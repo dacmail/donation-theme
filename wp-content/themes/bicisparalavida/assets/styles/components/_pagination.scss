@@ -1,0 +1,23 @@
+.pagination {
+  list-style: none;
+  text-align: center;
+  position: relative;
+  margin: 0 auto;;
+  li {
+    display: inline-block;
+    .page-numbers {
+      display: inline-block;
+      color: $primary;
+      text-align: center;
+      &.current {
+
+      }
+      &.next {
+
+      }
+      &.prev {
+
+      }
+    }
+  }
+}
