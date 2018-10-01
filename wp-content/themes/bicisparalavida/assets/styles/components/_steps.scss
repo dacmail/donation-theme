@@ -1,0 +1,46 @@
+.steps {
+  background: $light;
+  padding: $gap * 8 0;
+  text-align: center;
+
+  @media (min-width: $md) {
+    padding: $gap * 10 0;
+  }
+
+  .container {
+
+    @media (min-width: $md) {
+      display: flex;
+    }
+  }
+
+  .step {
+    margin-bottom: $gap * 8;
+
+    @media (min-width: $md) {
+      flex: 0 0 (100% / 3);
+      max-width: (100% / 3);
+      padding: 0 $gap * 5;
+    }
+
+    &__title {
+      margin: 0 0 $gap * 2 0;
+
+      @media (min-width: $md) {}
+    }
+
+    &__image {
+      max-height: 80px;
+      width: auto;
+      display: inline-block;
+      margin-bottom: $gap * 4;
+
+      @media (min-width: $md) {}
+    }
+  }
+
+  .button {
+    display: inline-block;
+    margin: 0 auto;
+  }
+}

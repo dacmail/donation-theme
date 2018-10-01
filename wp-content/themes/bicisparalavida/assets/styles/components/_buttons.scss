@@ -9,10 +9,19 @@
   background-color: $white;
   border: 1px solid $white;
   color: $primary;
+  text-align: center;
+  text-transform: lowercase;
+
+  @media (min-width: $md) {
+    font-size: rem(24px);
+    line-height: 1;
+    border-radius: 40px;
+    padding: 27px 70px;
+  }
 
   &:hover {
     background-color: $primary;
-    border-color: $primary;
+    border-color: $white;
     color: $white;
     text-decoration: none;
   }
@@ -24,7 +33,7 @@
 
     &:hover {
       background-color: $white;
-      border-color: $white;
+      border-color: $primary;
       color: $primary;
     }
   }

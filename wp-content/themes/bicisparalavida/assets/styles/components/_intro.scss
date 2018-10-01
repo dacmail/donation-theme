@@ -1,0 +1,35 @@
+.intro {
+  padding: $gap * 4 0;
+  background: url('../images/intro-left.svg') $primary bottom center no-repeat;
+  color: $white;
+  text-align: center;
+  padding-bottom: $gap * 10;
+  font-size: rem(18px);
+  line-height: 1.33;
+
+  @media (min-width: $sm) {
+    background-image: url('../images/intro-left.svg'),
+                url('../images/intro-right.svg');
+    background-position: bottom left, bottom right;
+    font-size: rem(24px);
+  }
+
+  .container {
+    max-width: 750px;
+  }
+
+  &__title {
+    color: $white;
+    text-transform: uppercase;
+    margin: 0 0 $gap * 4 0;
+
+    span {
+      font-weight: bold;
+      display: block;
+    }
+  }
+
+  p {
+    margin-bottom: $gap * 4;
+  }
+}

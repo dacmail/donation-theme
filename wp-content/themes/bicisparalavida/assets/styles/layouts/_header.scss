@@ -11,7 +11,76 @@
 
   .custom-logo-link {
     display: block;
-    max-width: 160px;
+    width: 160px;
+
+    @media (min-width: $sm) {
+      width: 260px;
+    }
+  }
+
+  &__menu {
+    position: fixed;
+    width: 100%;
+    top: -100vh;
+    left: 0;
+    background-color: $primary;
+    transition: $transition-standard;
+
+    @media (min-width: $sm) {
+      position: unset;
+      top: auto;
+      left: auto;
+      width: auto;
+    }
+
+    .menu {
+      display: flex;
+      flex-flow: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: 0;
+      min-height: calc(100vh - 115px);
+
+      @media (min-width: $sm) {
+        min-height: 0;
+      }
+
+      @media (min-width: $sm) {
+        flex-flow: row;
+        justify-content: space-between;
+      }
+    }
+    .menu-item {
+      list-style: none;
+      font-size: rem(32px);
+      text-transform: lowercase;
+      font-weight: 400;
+
+      @media (min-width: $sm) {
+        font-size: rem(18px);
+        margin-left: $gap * 5;
+      }
+
+      a {
+        color: $white;
+      }
+
+      &.donate {
+        a {
+          @extend .button;
+          min-width: auto;
+          border-radius: 32px;
+          font-size: rem(18px);
+          line-height: 1.33;
+          padding: 20px 50px;
+        }
+      }
+    }
+
+    &.visible {
+      top: 115px;
+    }
   }
 
   &__menu-toggle {
@@ -20,6 +89,10 @@
     width: 40px;
     text-decoration: none;
     position: relative;
+
+    @media (min-width: $sm) {
+      display: none;
+    }
 
     span {
       display: block;
