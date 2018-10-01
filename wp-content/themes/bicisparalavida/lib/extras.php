@@ -3,6 +3,7 @@
 namespace Roots\Sage\Extras;
 
 use Roots\Sage\Setup;
+use Ungrynerd\DonateForm;
 
 /**
  * Add <body> classes
@@ -83,9 +84,9 @@ function disable_wp_emojicons() {
 }
 add_action('init', __NAMESPACE__ . '\disable_wp_emojicons');
 
-function disable_emojicons_tinymce( $plugins ) {
-  if ( is_array( $plugins ) ) {
-    return array_diff( $plugins, array( 'wpemoji' ) );
+function disable_emojicons_tinymce( $plugins) {
+  if ( is_array( $plugins)) {
+    return array_diff( $plugins, array( 'wpemoji'));
   } else {
     return array();
   }
@@ -104,18 +105,137 @@ function ungrynerd_pagination($query=null) {
     'format' => '?paged=%#%',
     'mid_size' => 2,
     'end_size' => 1,
-    'current' => max( 1, get_query_var('paged') ),
+    'current' => max( 1, get_query_var('paged')),
     'prev_text' => '&larr;',
     'next_text' => '&rarr;',
     'add_args' => array($args)
-    )
-  );
+  )
+);
 
   if ($query->max_num_pages > 1) : ?>
     <ul class="pagination">
-    <?php foreach ( $paginate as $page ) {
+    <?php foreach ( $paginate as $page) {
       echo '<li>' . $page . '</li>';
     } ?>
   </ul>
   <?php endif;
 }
+
+
+
+// Register Custom Post Type
+function ungrynerd_donation_posttype() {
+  $labels = array(
+    'name'                  => _x('Donaciones', 'Post Type General Name', 'ungrynerd'),
+    'singular_name'         => _x('Donación', 'Post Type Singular Name', 'ungrynerd'),
+    'menu_name'             => __('Donaciones', 'ungrynerd'),
+    'name_admin_bar'        => __('Post Type', 'ungrynerd'),
+    'archives'              => __('Item Archives', 'ungrynerd'),
+    'attributes'            => __('Item Attributes', 'ungrynerd'),
+    'parent_item_colon'     => __('Parent Item:', 'ungrynerd'),
+    'all_items'             => __('All Items', 'ungrynerd'),
+    'add_new_item'          => __('Add New Item', 'ungrynerd'),
+    'add_new'               => __('Add New', 'ungrynerd'),
+    'new_item'              => __('New Item', 'ungrynerd'),
+    'edit_item'             => __('Edit Item', 'ungrynerd'),
+    'update_item'           => __('Update Item', 'ungrynerd'),
+    'view_item'             => __('View Item', 'ungrynerd'),
+    'view_items'            => __('View Items', 'ungrynerd'),
+    'search_items'          => __('Search Item', 'ungrynerd'),
+    'not_found'             => __('Not found', 'ungrynerd'),
+    'not_found_in_trash'    => __('Not found in Trash', 'ungrynerd'),
+    'featured_image'        => __('Featured Image', 'ungrynerd'),
+    'set_featured_image'    => __('Set featured image', 'ungrynerd'),
+    'remove_featured_image' => __('Remove featured image', 'ungrynerd'),
+    'use_featured_image'    => __('Use as featured image', 'ungrynerd'),
+    'insert_into_item'      => __('Insert into item', 'ungrynerd'),
+    'uploaded_to_this_item' => __('Uploaded to this item', 'ungrynerd'),
+    'items_list'            => __('Items list', 'ungrynerd'),
+    'items_list_navigation' => __('Items list navigation', 'ungrynerd'),
+    'filter_items_list'     => __('Filter items list', 'ungrynerd'),
+);
+  $args = array(
+    'label'                 => __('Donación', 'ungrynerd'),
+    'description'           => __('Donaciones o trabajos realizados', 'ungrynerd'),
+    'labels'                => $labels,
+    'supports'              => array('title'),
+    'hierarchical'          => false,
+    'public'                => true,
+    'show_ui'               => true,
+    'show_in_menu'          => true,
+    'menu_icon'             => 'dashicons-screenoptions',
+    'menu_position'         => 5,
+    'show_in_admin_bar'     => true,
+    'show_in_nav_menus'     => true,
+    'can_export'            => true,
+    'has_archive'           => true,
+    'exclude_from_search'   => false,
+    'publicly_queryable'    => true,
+    'rewrite'               => array( 'slug' => 'donacion'),
+    'capability_type'       => 'page',
+);
+  register_post_type('un_donation', $args);
+
+}
+add_action('init',  __NAMESPACE__ . '\\ungrynerd_donation_posttype', 0);
+
+
+function ungrynerd_remove_seo() {
+  remove_meta_box('wpseo_meta', 'un_donation', 'normal');
+}
+add_action('add_meta_boxes', __NAMESPACE__ . '\\ungrynerd_remove_seo', 100);
+
+
+
+add_action('wp_ajax_new_donation', __NAMESPACE__ . '\\process_new_donation');
+add_action('wp_ajax_nopriv_new_donation', __NAMESPACE__ . '\\process_new_donation');
+
+function process_new_donation() {
+  if ( empty($_POST) || !wp_verify_nonce($_POST['new_donation_nonce'],'new_donation')) {
+      echo 'You targeted the right function, but sorry, your nonce did not verify.';
+      die();
+  } else {
+      $form = new DonateForm\DonateForm($_POST['donor_name'], $_POST['donor_email'], $_POST['donor_cp']);
+      $form->new_donation();
+      $form->send_new_donation_email();
+      wp_redirect(get_permalink($form->donation));
+  }
+}
+
+function ungrynerd_new_donation_status($value, $post_id, $field) {
+  $donation = new DonateForm\DonateForm(get_field('donor_name', $post_id), get_field('donor_email', $post_id), get_field('donor_cp', $post_id));
+  $donation->donation = $post_id;
+  $donation->donationCode = get_the_title($post_id);
+  $donation->send_new_status_email($value);
+  return $value;
+}
+add_filter('acf/update_value/name=status', __NAMESPACE__ . '\\ungrynerd_new_donation_status', 10, 3);
+
+
+/*
+ * Add columns to un_donation post list
+ */
+function ungrynerd_add_acf_columns($columns) {
+  return array(
+    'title' => __('Codigo de seguimiento', 'ungrynerd'),
+    'cp' => __('Codigo Postal', 'ungrynerd'),
+    'status'   => __('Estado', 'ungrynerd'),
+    'date' => __('Fecha', 'ungrynerd')
+  );
+ }
+ add_filter('manage_un_donation_posts_columns', __NAMESPACE__ . '\\ungrynerd_add_acf_columns', 20);
+
+  /*
+ * Add columns to un_donation post list
+ */
+ function ungryenrd_un_donation_custom_column($column, $post_id) {
+  switch ($column) {
+    case 'cp':
+      echo get_post_meta ($post_id, 'donor_cp', true);
+      break;
+    case 'status':
+      echo get_post_meta ($post_id, 'status', true);
+      break;
+  }
+ }
+ add_action('manage_un_donation_posts_custom_column', __NAMESPACE__ . '\\ungryenrd_un_donation_custom_column', 10, 2);

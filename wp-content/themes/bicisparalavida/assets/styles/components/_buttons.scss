@@ -1,0 +1,31 @@
+.button {
+  display: inline-block;
+  min-width: 256px;
+  border-radius: 32px;
+  font-size: rem(18px);
+  font-weight: bold;
+  line-height: 1.33;
+  padding: 20px 50px;
+  background-color: $white;
+  border: 1px solid $white;
+  color: $primary;
+
+  &:hover {
+    background-color: $primary;
+    border-color: $primary;
+    color: $white;
+    text-decoration: none;
+  }
+
+  &--alt {
+    background-color: $primary;
+    border-color: $primary;
+    color: $white;
+
+    &:hover {
+      background-color: $white;
+      border-color: $white;
+      color: $primary;
+    }
+  }
+}

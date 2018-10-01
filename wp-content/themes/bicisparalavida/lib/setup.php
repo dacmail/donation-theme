@@ -79,7 +79,7 @@ function display_sidebar() {
  * Theme assets
  */
 function assets() {
-  wp_enqueue_style('ungrynerd/fonts', '//fonts.googleapis.com/css?family=Montserrat:200,300,400,500,600,700,800,900');
+  wp_enqueue_style('ungrynerd/fonts', '//fonts.googleapis.com/css?family=Quicksand:300,400,700');
   wp_enqueue_style('ungrynerd/css', Assets\asset_path('styles/main.css'), false, null);
 
   if (is_single() && comments_open() && get_option('thread_comments')) {

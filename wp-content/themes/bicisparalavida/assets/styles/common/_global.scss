@@ -11,30 +11,38 @@ body, input, textarea {
     text-rendering: optimizeLegibility;
     -moz-osx-font-smoothing: grayscale;
 }
+
 a {
   transition: $transition-standard;
   color: $primary;
   text-decoration: none;
+
   &:hover {
     text-decoration: underline;
   }
 }
+
 img {
   max-width: 100%;
   height: auto;
 }
+
 body {
   @include body-text;
 }
+
 h1 {
   @include title-h1;
 }
+
 h2 {
-    @include title-h2;
+  @include title-h2;
 }
-h4 {
-  @include title-h4;
+
+h3 {
+  @include title-h3;
 }
+
 .container {
   @include container;
 }

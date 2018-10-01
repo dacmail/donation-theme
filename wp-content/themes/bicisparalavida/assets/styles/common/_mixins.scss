@@ -5,40 +5,52 @@
 
 /* Text styles */
 
-@mixin title-h1($color: $white) {
-  font-family: Roboto;
-  font-size: rem(48px);
-  font-weight: 900;
+@mixin title-h1($color: $dark) {
+  font-family: Quicksand, sans-serif;
+  font-size: rem(40px);
+  font-weight: 300;
   line-height: 1;
-  letter-spacing: -2px;
   color: $color;
+
+  @media (min-width: $sm) {
+    font-size: rem(72px);
+    line-height: 0.89;
+    letter-spacing: -1px;
+  }
+}
+
+@mixin title-h2($color: $dark) {
+  font-family: Quicksand, sans-serif;
+  font-size: rem(40px);
+  font-weight: bold;
+  line-height: 1;
+  color: $color;
+
   @media (min-width: $sm) {
     font-size: rem(64px);
   }
 }
 
-@mixin title-h2($color: $white) {
-  font-family: Roboto;
-  font-size: rem(32px);
-  font-weight: 900;
-  line-height: 1;
+@mixin title-h3($color: $dark) {
+  font-family: Quicksand, sans-serif;
+  font-size: rem(24px);
+  font-weight: bold;
   color: $color;
 }
 
-@mixin title-h4 {
-  font-family: Roboto;
-  font-size: rem(18px);
-  font-stretch: condensed;
-}
 
 @mixin body-text($color: $dark, $weight: 300) {
-  font-family: Roboto;
+  font-family: Quicksand, sans-serif;
   font-size: rem(16px);
   font-weight: $weight;
   line-height: 1.5;
   color: $color;
-}
 
+  @media (min-width: $sm) {
+    font-size: rem(18px);
+    line-height: 1.33;
+  }
+}
 
 @mixin container($width: $container-px, $gap: $gap * 4) {
   width: 100%;
@@ -49,7 +61,6 @@
   padding-right: $gap;
 }
 
-
 @mixin button($color: $primary) {
   font-size: rem(16px);
   line-height: 1.5;
@@ -57,6 +68,7 @@
   text-align: center;
   padding: $gap * 2;
   border: solid 1px $color;
+
   &:hover {
     background: $primary;
     color: $dark;
