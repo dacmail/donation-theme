@@ -1,0 +1,33 @@
+.footer {
+  @include container;
+  text-align: center;
+
+  .copy {
+    font-size: rem(16px);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .legal {
+    font-size: 14px;
+    line-height: 1.71;
+
+    a {
+      color: $dark;
+      text-decoration: underline;
+    }
+  }
+
+  .by {
+    font-size: 14px;
+    line-height: 1.71;
+
+    a {
+      color: $dark;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+  }
+}

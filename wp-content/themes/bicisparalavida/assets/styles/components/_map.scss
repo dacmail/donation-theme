@@ -1,0 +1,67 @@
+.map {
+  background: $primary;
+  position: relative;
+  padding-top: $gap * 8;
+  color: $white;
+  margin-bottom: $gap * 16;
+
+  @media (min-width: $md) {
+    padding-top: $gap * 13;
+    margin-bottom: $gap * 20;
+  }
+
+  &:before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate3d(-50%, -50%, 0);
+    width: $gap * 10;
+    height: $gap * 10;
+    background: url(../images/icon-marker.svg) center center no-repeat $primary;
+    border-radius: 50%;
+    border: 5px solid $white;
+
+    @media (min-width: $md) {
+      width: $gap * 20;
+      height: $gap * 20;
+      background-size: $gap * 8;
+      border-width: $gap;
+    }
+  }
+
+  &__title {
+    font-size: rem(18px);
+    font-weight: bold;
+    line-height: 1.33;
+    text-align: center;
+    color: $white;
+    margin: 0 0 $gap * 4 0;
+
+    @media (min-width: $md) {
+      line-height: 1;
+      font-size: rem(24px);
+      margin-bottom: $gap * 5;
+    }
+  }
+
+  &__container {
+    position: relative;
+    padding-bottom: 100.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+
+    @media (min-width: $md) {
+      padding-bottom: 36.25%; /* 16:9 */
+    }
+
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

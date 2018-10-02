@@ -1,5 +1,21 @@
-<footer class="content-info">
-  <div class="container">
-    <?php dynamic_sidebar('sidebar-footer'); ?>
-  </div>
+<footer class="footer">
+  <p class="copy">
+    <strong>© <?php echo date('Y') ?> - <?php esc_html_e('BICIS PARA LA VIDA.', 'ungrynerd'); ?></strong>
+  </p>
+
+  <p class="legal">
+    <?php esc_html_e('Todos los derechos reservados. Prohibida su copia o reproducción sin autorización expresa.', 'ungrynerd'); ?>
+    - <a href="<?= get_theme_mod('ungrynerd_legal'); ?>">
+        <?php esc_html_e('Aviso legal', 'ungrynerd'); ?>
+      </a>
+    - <a href="<?= get_theme_mod('ungrynerd_policy'); ?>">
+        <?php esc_html_e('Política de privacidad', 'ungrynerd'); ?>
+      </a>
+  </p>
+
+  <p class="by">
+    <a target="_blank" href="http://ungrynerd.com">
+      <?php esc_html_e('Diseño y desarrollo', 'ungrynerd'); ?> <strong>UNGRYNERD</strong>
+    </a>
+  </p>
 </footer>

@@ -1,0 +1,24 @@
+.logos {
+  text-align: center;
+  margin-bottom: $gap * 10;
+
+  @media (min-width: $md) {
+    margin-bottom: $gap * 12;
+  }
+
+  .container {
+
+    @media (min-width: $md) {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+  }
+
+  &__logo {
+    @media (min-width: $md) {
+      flex: 1 1 33%;
+      max-width: 33%;
+    }
+  }
+}
