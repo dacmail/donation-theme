@@ -1,3 +1,4 @@
+<?php get_template_part('templates/block-logos') ?>
 <footer class="footer">
   <p class="copy">
     <strong>© <?php echo date('Y') ?> - <?php esc_html_e('BICIS PARA LA VIDA.', 'ungrynerd'); ?></strong>

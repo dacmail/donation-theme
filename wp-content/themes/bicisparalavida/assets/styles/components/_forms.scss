@@ -1,0 +1,28 @@
+input[type=text],
+input[type=email] {
+  background: transparent;
+  border: 0;
+  border-bottom: solid 2px $white;
+  width: 100%;
+  text-align: center;
+  padding: $gap * 3;
+  font-weight: bold;
+  color: $white;
+  font-size: rem(18px);
+  line-height: 1.33;
+
+  @media (min-width: $md) {
+    font-size: rem(24px);
+  }
+
+  &::placeholder {
+    font-weight: 300;
+    color: $white;
+    font-size: rem(18px);
+    line-height: 1.33;
+
+    @media (min-width: $md) {
+      font-size: rem(24px);
+    }
+  }
+}

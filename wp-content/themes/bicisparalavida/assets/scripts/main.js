@@ -18,6 +18,19 @@
         $(this).toggleClass("active");
         $(".header__menu").toggleClass("visible");
       });
+    },
+    printTracker: function () {
+      var printContents = document.getElementById('track-id').outerHTML;
+      var originalContents = document.body.innerHTML;
+
+      document.body.innerHTML = printContents;
+
+      window.print();
+
+      document.body.innerHTML = originalContents;
+      $('#print').on('click', function () {
+        Ungrynerd.printTracker();
+      });
     }
   };
   // Use this variable to set up the common and page specific functions. If you
@@ -28,6 +41,9 @@
       init: function () {
         // JavaScript to be fired on all pages
         Ungrynerd.setupMobileMenu();
+        $('#print').on('click', function () {
+          Ungrynerd.printTracker();
+        });
       },
       finalize: function () {
         // JavaScript to be fired on all pages, after page specific JS is fired

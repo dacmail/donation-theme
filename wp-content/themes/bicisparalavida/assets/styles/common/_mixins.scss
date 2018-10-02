@@ -39,7 +39,7 @@
 }
 
 
-@mixin body-text($color: $dark, $weight: 300) {
+@mixin body-text($color: $dark, $weight: 400) {
   font-family: Quicksand, sans-serif;
   font-size: rem(16px);
   font-weight: $weight;
@@ -52,7 +52,7 @@
   }
 }
 
-@mixin container($width: $container-px, $gap: $gap * 4) {
+@mixin container($width: $container-px, $gap: $gap * 2) {
   width: 100%;
   max-width: $width;
   margin-left: auto;

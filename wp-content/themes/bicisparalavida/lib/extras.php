@@ -185,6 +185,11 @@ function ungrynerd_remove_seo() {
 }
 add_action('add_meta_boxes', __NAMESPACE__ . '\\ungrynerd_remove_seo', 100);
 
+function ungrynerd_new_var($vars) {
+  $vars[] = "thanks";
+  return $vars;
+}
+add_filter('query_vars', __NAMESPACE__ . '\\ungrynerd_new_var');
 
 
 add_action('wp_ajax_new_donation', __NAMESPACE__ . '\\process_new_donation');
@@ -198,7 +203,7 @@ function process_new_donation() {
       $form = new DonateForm\DonateForm($_POST['donor_name'], $_POST['donor_email'], $_POST['donor_cp']);
       $form->new_donation();
       $form->send_new_donation_email();
-      wp_redirect(get_permalink($form->donation));
+      wp_redirect(add_query_arg('thanks', 'yes', get_permalink($form->donation)));
   }
 }
 
@@ -231,10 +236,10 @@ function ungrynerd_add_acf_columns($columns) {
  function ungryenrd_un_donation_custom_column($column, $post_id) {
   switch ($column) {
     case 'cp':
-      echo get_post_meta ($post_id, 'donor_cp', true);
+      echo get_post_meta($post_id, 'donor_cp', true);
       break;
     case 'status':
-      echo get_post_meta ($post_id, 'status', true);
+      echo get_post_meta($post_id, 'status', true);
       break;
   }
  }
