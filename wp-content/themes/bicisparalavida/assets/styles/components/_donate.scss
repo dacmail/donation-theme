@@ -52,6 +52,18 @@
       margin-top: $gap * 3;
     }
   }
+  &--status {
+    .status {
+      &__title {
+        color: $white;
+        margin: $gap * 5 0 $gap 0;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
 }
 
 .track-code {

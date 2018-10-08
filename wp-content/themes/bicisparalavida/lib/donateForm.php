@@ -28,7 +28,8 @@ class DonateForm {
       'meta_input' => array(
         'donor_email' => $this->email,
         'donor_name' => $this->name,
-        'donor_cp' => $this->cp
+        'donor_cp' => $this->cp,
+        'status' => 0
       )
     ));
     if (!is_wp_error($donation)) {

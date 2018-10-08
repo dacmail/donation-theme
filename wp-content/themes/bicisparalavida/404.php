@@ -1,12 +1,7 @@
-<section class="404">
+<article class="donate-page">
   <div class="container">
-    <h1 class="title">
-      <?php _e('Lo sentimos, la página que buscas no existe', 'hde' ); ?>
-    </h1>
-    <div class="not-found">
-      <p><?php esc_html_e('Quizá has escrito mal la dirección, o la hemos roto nosotros. ', 'hde'); ?></p>
-      <p><?php printf(__('Puedes ir a la <a href="%1$s">página de inicio</a> o usar este buscador para encontrar lo que buscas:', 'ungrynerd'), home_url('/')); ?></p>
-      <?php get_search_form(); ?>
-    </div>
+    <h1>No encontrada</h1>
+    <p>La página que buscas no se encuentra, por favor, prueba a buscar otro código de seguimiento distinto</p>
+    <?php get_template_part('templates/status-form'); ?>
   </div>
-</section>
+</article>
