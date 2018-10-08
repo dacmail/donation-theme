@@ -22,6 +22,11 @@
 
   form {
     margin-top: $gap * 3;
+
+    a {
+      text-decoration: underline;
+      color: $white;
+    }
   }
 
   input {

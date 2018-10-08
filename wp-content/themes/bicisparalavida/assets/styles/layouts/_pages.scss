@@ -1,0 +1,22 @@
+.page {
+  &__header {
+    background: $primary;
+    color: $white;
+    padding: 2rem 0 4rem 0;
+    h1 {
+      @include container;
+      margin: 0 auto;
+      color: $white;
+      text-align: center;
+    }
+  }
+
+  &__content {
+    margin-top: 3rem;
+    margin-bottom: 4rem;
+    @media (min-width: $md) {
+      margin-top: 6rem;
+      margin-bottom: 8rem;
+    }
+  }
+}
