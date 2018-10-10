@@ -4,7 +4,7 @@
       <h1>¡Gracias!</h1>
       <p>
         <span id="track-id" class="track-code">
-          <span class="indications">Introduce esta hoja en el embalaje de tu bicicleta para llevar el seguimiento de la donación.</span>
+          <span class="indications">Introduce esta hoja en el embalaje de tu bicicleta para llevar el seguimiento de la donación. <?= do_shortcode('[qrcodetag]' . get_the_title() . '[/qrcodetag]') ?></span>
           <?php the_title(); ?>
         </span>
       </p>

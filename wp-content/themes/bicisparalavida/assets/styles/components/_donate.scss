@@ -87,6 +87,15 @@
       font-weight: normal;
       margin: 40px;
     }
+
+    img {
+      @media print {
+        display: block;
+        width: 150px;
+        height: auto;
+        margin: 30px auto;
+      }
+    }
   }
 }
 
