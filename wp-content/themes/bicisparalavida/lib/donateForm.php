@@ -9,11 +9,13 @@ class DonateForm {
   public $cp;
   public $donationCode;
   public $donation;
+  public $skoda;
 
-  public function __construct($name, $email, $cp) {
+  public function __construct($name, $email, $cp, $accept_skoda = '') {
     if (empty($name) || empty($email) || empty($cp)) {
       throw new \Exception('Falta alguno de los campos del donante');
     }
+    $this->skoda = sanitize_text_field($accept_skoda);
     $this->name = sanitize_text_field($name);
     $this->email = sanitize_email($email);
     $this->cp = intval($cp);
@@ -29,6 +31,7 @@ class DonateForm {
         'donor_email' => $this->email,
         'donor_name' => $this->name,
         'donor_cp' => $this->cp,
+        'skoda' => $this->skoda,
         'status' => 0
       )
     ));

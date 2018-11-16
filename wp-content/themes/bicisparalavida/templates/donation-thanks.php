@@ -4,7 +4,7 @@
       <h1>¡Gracias!</h1>
       <p>
         <span id="track-id" class="track-code">
-          <span class="indications">Introduce esta hoja en el embalaje de tu bicicleta para llevar el seguimiento de la donación. <?= do_shortcode('[qrcodetag]' . get_the_title() . '[/qrcodetag]') ?></span>
+          <span class="indications"><?php the_custom_logo(); ?> Introduce esta hoja en el embalaje de tu bicicleta para llevar el seguimiento de la donación. <?= do_shortcode('[qrcodetag]' . get_the_title() . '[/qrcodetag]') ?></span>
           <?php the_title(); ?>
         </span>
       </p>
@@ -20,6 +20,6 @@
         <p>Busca tu oficina más cercana de SEUR o SKODA en el mapa que encontrarás en la <a href="<?= home_url('/') ?>">página principal</a> y lleva tu bicicleta junto con el código que te hemos facilitado.</p>
       </div>
     </div>
-    <h3>¡Gracias por contribuir en el proyecto ‘bicis para la vida’!</h3>
+    <h3>¡Gracias por contribuir en el proyecto ‘Bicis para la Vida by Skoda’!</h3>
   </section>
 <?php endwhile; ?>

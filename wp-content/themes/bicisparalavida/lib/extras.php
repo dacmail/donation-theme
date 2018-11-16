@@ -196,15 +196,16 @@ add_action('wp_ajax_new_donation', __NAMESPACE__ . '\\process_new_donation');
 add_action('wp_ajax_nopriv_new_donation', __NAMESPACE__ . '\\process_new_donation');
 
 function process_new_donation() {
-  if ( empty($_POST) || !wp_verify_nonce($_POST['new_donation_nonce'],'new_donation')) {
+  if ( empty($_POST) || !wp_verify_nonce($_POST['new_donation_nonce'], 'new_donation')) {
       echo 'You targeted the right function, but sorry, your nonce did not verify.';
       die();
   } else {
-      $form = new DonateForm\DonateForm($_POST['donor_name'], $_POST['donor_email'], $_POST['donor_cp']);
+      $form = new DonateForm\DonateForm($_POST['donor_name'], $_POST['donor_email'], $_POST['donor_cp'], $_POST['accept_skoda']);
       $form->new_donation();
       $form->send_new_donation_email();
       wp_redirect(add_query_arg('thanks', 'yes', get_permalink($form->donation)));
   }
+  die();
 }
 
 function ungrynerd_new_donation_status($value, $post_id, $field) {

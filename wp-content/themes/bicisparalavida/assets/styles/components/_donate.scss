@@ -96,6 +96,11 @@
         margin: 30px auto;
       }
     }
+
+    .custom-logo-link img {
+      filter: invert(100%);
+    }
+
   }
 }
 
