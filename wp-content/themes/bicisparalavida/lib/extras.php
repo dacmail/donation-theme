@@ -226,6 +226,7 @@ function ungrynerd_add_acf_columns($columns) {
     'title' => __('Codigo de seguimiento', 'ungrynerd'),
     'cp' => __('Codigo Postal', 'ungrynerd'),
     'status'   => __('Estado', 'ungrynerd'),
+    'skoda'   => __('¿Cesión Skoda?', 'ungrynerd'),
     'date' => __('Fecha', 'ungrynerd')
   );
  }
@@ -240,7 +241,13 @@ function ungrynerd_add_acf_columns($columns) {
       echo get_post_meta($post_id, 'donor_cp', true);
       break;
     case 'status':
-      echo get_post_meta($post_id, 'status', true);
+      $status_names = array('Pendiente de recepción', 'Recibida pendiente donar', 'Recibida despiece', 'Donada');
+      $status = get_post_meta($post_id, 'status', true) ? get_post_meta($post_id, 'status', true) :  0;
+      echo $status_names[$status];
+      break;
+    case 'skoda':
+      $skoda = get_post_meta($post_id, 'skoda', true) ? 'Sí' : 'No';
+      echo $skoda;
       break;
   }
  }
