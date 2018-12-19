@@ -3,7 +3,7 @@
   <?php $status_strings = array(
       0 => array(
             'title' => esc_html__('En camino', 'ungrynerd'),
-            'desc' => esc_html__('Tu bicicleta está de camino a nuestros almacenes', 'ungrynerd'),
+            'desc' => esc_html__('Estamos a la espera de recibir tu bicicleta', 'ungrynerd'),
             'img' => 'status-0',
       ),
       1 => array(
