@@ -26,6 +26,11 @@
     text-decoration: none;
   }
 
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
   &--alt {
     background-color: $primary;
     border-color: $primary;
@@ -36,5 +41,6 @@
       border-color: $primary;
       color: $primary;
     }
+
   }
 }

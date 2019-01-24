@@ -18,5 +18,16 @@
       margin-top: 6rem;
       margin-bottom: 8rem;
     }
+
+    input[type=text],
+    input[type=email],
+    textarea {
+      border: 1px solid $primary;
+    }
+  }
+
+  .wpcf7-submit {
+    @extend .button;
+    @extend .button--alt;
   }
 }

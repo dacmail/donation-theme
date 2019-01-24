@@ -1,5 +1,6 @@
 input[type=text],
-input[type=email] {
+input[type=email],
+textarea {
   background: transparent;
   border: 0;
   border-bottom: solid 2px $white;
@@ -26,9 +27,11 @@ input[type=email] {
     }
   }
 }
+
 input[type=checkbox] {
   opacity: 0;
-  + label {
+  + label,
+  + .wpcf7-list-item-label {
     &:before {
       content: '';
       display: inline-block;
@@ -41,10 +44,22 @@ input[type=checkbox] {
       margin: 0 1rem 0 0;
     }
   }
+  +.wpcf7-list-item-label {
+    &:before {
+      background: $white;
+      border: .25rem solid $primary;
+    }
+  }
   &:checked {
-    + label {
+    + label,
+    + .wpcf7-list-item-label {
       &:before {
         background: $primary;
+      }
+    }
+    +.wpcf7-list-item-label {
+      &:before {
+        background-color: $primary;
       }
     }
   }

@@ -30,6 +30,14 @@ function customize_register($wp_customize) {
     'settings' => 'ungrynerd_policy'
   )));
 
+  $wp_customize->add_setting('ungrynerd_contact');
+  $wp_customize->add_control(new \WP_Customize_Control($wp_customize, 'ungrynerd_contact', array(
+    'type' => 'text',
+    'label' => __('Contacto', 'ungrynerd'),
+    'section' => 'ungrynerd_legal',
+    'settings' => 'ungrynerd_contact'
+  )));
+
   $wp_customize->add_setting('ungrynerd_form_policy');
   $wp_customize->add_control(new \WP_Customize_Control($wp_customize, 'ungrynerd_form_policy', array(
     'type' => 'text',

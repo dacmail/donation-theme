@@ -12,6 +12,9 @@
     - <a href="<?= get_theme_mod('ungrynerd_policy'); ?>">
         <?php esc_html_e('Política de privacidad', 'ungrynerd'); ?>
       </a>
+    - <a href="<?= get_theme_mod('ungrynerd_contact'); ?>">
+        <?php esc_html_e('Contacta', 'ungrynerd'); ?>
+      </a>
   </p>
 
   <p class="by">
