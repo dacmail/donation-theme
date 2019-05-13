@@ -12,13 +12,25 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: space-between;
     }
   }
 
   &__logo {
     @media (min-width: $md) {
-      flex: 1 1 33%;
-      max-width: 33%;
+      flex: 1 1 30%;
+      max-width: 30%;
+    }
+  }
+
+  &--collab {
+    .logos {
+      &__logo {
+        @media (min-width: $md) {
+          flex: 1 1 25%;
+          max-width: 15%;
+        }
+      }
     }
   }
 }
