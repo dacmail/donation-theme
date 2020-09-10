@@ -1,0 +1,47 @@
+.post {
+  padding-bottom: rem(60px);
+  margin-bottom: rem(60px);
+  border-bottom: 1px solid $light;
+  line-height: 1.5;
+
+  &__wrapper {
+    max-width: rem(740px);
+    padding-top: rem(80px);
+    padding-bottom: rem(80px);
+  }
+
+  &__date {
+    margin: 0;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.33;
+
+    @media (min-width: $md) {
+
+    }
+
+    a {
+      color: $dark;
+    }
+  }
+
+  &__link {
+    font-weight: bold;
+
+    a {
+      display: flex;
+      align-items: center;
+    }
+
+    svg {
+      margin-left: rem(8px);
+    }
+  }
+
+  &-pagination {
+    text-align: center;
+  }
+}

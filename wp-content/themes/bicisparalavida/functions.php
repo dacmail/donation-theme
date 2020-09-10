@@ -27,3 +27,17 @@ foreach ($sage_includes as $file) {
   require_once $filepath;
 }
 unset($file, $filepath);
+
+add_action(
+  'template_redirect',
+  function () {
+    if (is_singular('post')) {
+        global $wp_query;
+        $wp_query->posts = [];
+        $wp_query->post = null;
+        $wp_query->set_404();
+        status_header(404);
+        nocache_headers();
+    }
+  }
+);

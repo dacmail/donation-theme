@@ -252,3 +252,19 @@ function ungrynerd_add_acf_columns($columns) {
   }
  }
  add_action('manage_un_donation_posts_custom_column', __NAMESPACE__ . '\\ungryenrd_un_donation_custom_column', 10, 2);
+
+
+add_filter('embed_oembed_html', function ($html, $url, $args) {
+  $provider = '';
+  if (preg_match("#https?://youtu\.be/.*#i", $url) || preg_match("#https?://(www\.)?youtube\.com/watch.*#i", $url)) {
+    $provider = 'youtube';
+  } elseif (preg_match("/vimeo.com\/([^&]+)/i", $url)) {
+    $provider = 'vimeo';
+  } elseif (preg_match("/twitch\/([^&]+)/i", $url)) {
+    $provider = 'twitch';
+  }
+  if (!empty($provider)) {
+    $html = "<div class='oembed " . $provider . "' >" . $html . "</div>";
+  }
+  return $html;
+}, 10, 3);
