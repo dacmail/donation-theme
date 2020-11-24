@@ -1,19 +1,20 @@
 === Simple CSV/XLS Exporter ===
 
-Contributors: Shambix, Dukessa
-Author URL: http://www.shambix.com
-Tags: csv, xls, export, excel, custom fields, custom post types, export products, export posts
-Requires at least: 4
-Tested up to: 4.8.1
+Contributors: Shambix, Dukessa, thaikolja, akforsyt
+Author URL: https://www.shambix.com
+Requires at least: 5
+Tested up to: 5.3
 Stable tag: trunk
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License: GPLv3
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
+Tags: csv, xls, export, excel, custom fields, custom post types, export products, export posts
 
 Export any content to CSV or XLS, through a link/button, from backend / frontend. Supports custom post types, WooCommerce, custom taxonomies, post statuses, users & fields.
 
 == Description ==
 
 This plugin allows you to export your posts to CSV or XLS file, through a simple link/button, from either backend or frontend.
+**Make sure you are using PHP 7.3, if you see any errors, older versions will not be supported anymore.**
 
 **Supports**
 
@@ -24,6 +25,7 @@ This plugin allows you to export your posts to CSV or XLS file, through a simple
 * WooCommerce products, orders, status, categories and fields
 * export only current user posts
 * export specific user ID posts
+* export specific post IDs
 
 You can set the default post type, with its taxonomies and custom fields, that you wish to export, from the Settings page.
 
@@ -32,6 +34,8 @@ After that, anytime you will use the urls `https://yoursite.com/?export=csv` for
 "You must choose the post type and save the settings before you can see the taxonomies or custom fields for a custom post type. Once the page reloads, you will see the connected taxonomies and custom fields for the post type."
 
 If you want to export from a different post type than the one saved in these settings, also from frontend, use the url `https://yoursite.com/?export=csv&post_type=your_post_type_slug` for a CSV file, or `https://yoursite.com/?export=xls&post_type=your_post_type_slug` to get a XLS.
+
+**Please check the [Plugin's FAQ](https://wordpress.org/plugins/simple-csv-xls-exporter/#faq) for all possible options and available custom parameters you can use.**
 
 When opening the exported xls, Excel will prompt the user with a warning, but the file is perfectly fine and can then be opened. Unfortunately this can't be avoided, [read more here](http://blogs.msdn.com/b/vsofficedeveloper/archive/2008/03/11/excel-2007-extension-warning.aspx).
 
@@ -117,6 +121,14 @@ Default is all users.
 
 Eg. `https://yoursite.com/?export=xls&post_type=portfolio&user`
 
+= Can I export specific posts? =
+
+Yes, as of v. 1.5.
+
+You need the parameter `?specific_posts` in the export url.
+
+Eg. `https://yoursite.com/?export=xls&specific_posts=1,2,3`
+
 == Screenshots ==
 
 1. Settings Page
@@ -124,6 +136,44 @@ Eg. `https://yoursite.com/?export=xls&post_type=portfolio&user`
 3. Settings Page
 
 == Changelog ==
+
+= 1.5.4.1 =
+
+* Fixed PHP < 7 error: Argument 1 passed to simple_csv_xls_exporter_generate_file_name() must be an instance of string, string given.
+* Plugin will only support PHP 7.3+ from now on.
+
+= 1.5.3 =
+
+* Pulled GabrielFalkoski's merge request
+* Added a Hook Filter to handle content to export `ccsve_export_returns`
+
+= 1.5.2 =
+
+* Fix for "Warning: Use of undefined constant SIMPLE_CSV_EXPORTER_VERSION"
+
+= 1.5.1 =
+
+* Fixed action url from plugins page
+* Fixed PHP syntax error (unexpected ?)
+
+= 1.5 =
+
+* Merged with thaikolja's fork and refactoring
+* Added `specific_posts` parameter (Special thanks to: akforsyt)
+
+= 1.4.9 =
+
+* Plugin Refactoring (Special thanks to: thaikolja)
+* Replaced spaces with tabs for intendation.
+* Renamed classes (`SIMPLE_CSV_EXPORTER` to `Simple_CSV_Exporter`) to avoid confusion with constants.
+* Added documentation to some functions and classes.
+* Used strict comparison (`===`) where needed.
+* Removed some comment areas used for development purposes.
+* Added and rewrote some comments.
+* Added textdomain and made several strings localizable.
+* Restructured files, functions and classes and put them in appropriate directories.
+* Renamed some constants to be more accurate.
+* Added filter `simple_csv_xls_exporter_export_file_name`
 
 = 1.4.6 =
 * Added option to set custom Delimiter

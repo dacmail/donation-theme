@@ -2,6 +2,9 @@
 
 namespace WPMailSMTP;
 
+use WPMailSMTP\Helpers\Crypto;
+use WPMailSMTP\UsageTracking\UsageTracking;
+
 /**
  * Class Options to handle all options management.
  * WordPress does all the heavy work for caching get_option() data,
@@ -17,21 +20,22 @@ class Options {
 	 *
 	 * @since 1.3.0
 	 * @since 1.4.0 Added Mailgun:region.
-	 *
-	 * @since
+	 * @since 1.5.0 Added Outlook/AmazonSES.
+	 * @since 1.8.0 Added Pepipost API.
+	 * @since 2.0.0 Added SMTP.com API.
 	 *
 	 * @var array Map of all the default options of the plugin.
 	 */
-	private static $map = array(
-		'mail'     => array(
+	private static $map = [
+		'mail'        => [
 			'from_name',
 			'from_email',
 			'mailer',
 			'return_path',
 			'from_name_force',
 			'from_email_force',
-		),
-		'smtp'     => array(
+		],
+		'smtp'        => [
 			'host',
 			'port',
 			'encryption',
@@ -39,31 +43,60 @@ class Options {
 			'auth',
 			'user',
 			'pass',
-		),
-		'gmail'    => array(
+		],
+		'gmail'       => [
 			'client_id',
 			'client_secret',
-		),
-		'mailgun'  => array(
+		],
+		'outlook'     => [
+			'client_id',
+			'client_secret',
+		],
+		'zoho'        => [
+			'domain',
+			'client_id',
+			'client_secret',
+		],
+		'amazonses'   => [
+			'client_id',
+			'client_secret',
+			'region',
+		],
+		'mailgun'     => [
 			'api_key',
 			'domain',
 			'region',
-		),
-		'sendgrid' => array(
+		],
+		'sendgrid'    => [
 			'api_key',
-		),
-		'pepipost' => array(
+		],
+		'smtpcom'     => [
+			'api_key',
+			'channel',
+		],
+		'sendinblue'  => [
+			'api_key',
+		],
+		'pepipostapi' => [
+			'api_key',
+		],
+		'pepipost'    => [
 			'host',
 			'port',
 			'encryption',
 			'auth',
 			'user',
 			'pass',
-		),
-	);
+		],
+		'license'     => [
+			'key',
+		],
+	];
 
 	/**
 	 * That's where plugin options are saved in wp_options table.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @var string
 	 */
@@ -71,6 +104,8 @@ class Options {
 
 	/**
 	 * All the plugin options.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @var array
 	 */
@@ -91,7 +126,7 @@ class Options {
 	 *
 	 * One-liner:
 	 *      Options::init()->get('smtp', 'host');
-	 *      Options::init()->is_pepipost_active();
+	 *      Options::init()->is_mailer_active( 'pepipost' );
 	 *
 	 * Or multiple-usage:
 	 *      $options = new Options();
@@ -116,6 +151,7 @@ class Options {
 	 * Default options that are saved on plugin activation.
 	 *
 	 * @since 1.3.0
+	 * @since 2.1.0 Set the Force from email to "on" by default.
 	 *
 	 * @return array
 	 */
@@ -127,11 +163,12 @@ class Options {
 				'from_name'        => get_bloginfo( 'name' ),
 				'mailer'           => 'mail',
 				'return_path'      => false,
-				'from_email_force' => false,
+				'from_email_force' => true,
 				'from_name_force'  => false,
 			),
 			'smtp' => array(
 				'autotls' => true,
+				'auth'    => true,
 			),
 		);
 	}
@@ -140,9 +177,11 @@ class Options {
 	 * Retrieve all options of the plugin.
 	 *
 	 * @since 1.0.0
+	 * @since 2.2.0 Added the filter.
 	 */
 	protected function populate_options() {
-		$this->_options = get_option( self::META_KEY, array() );
+
+		$this->_options = apply_filters( 'wp_mail_smtp_populate_options', get_option( self::META_KEY, [] ) );
 	}
 
 	/**
@@ -170,29 +209,34 @@ class Options {
 	/**
 	 * Get all the options for a group.
 	 *
-	 * Options::init()->get_group('smtp') - will return only array of options (or empty array if a key doesn't exist).
+	 * Options::init()->get_group('smtp') - will return the array of options for the group, including defaults and constants.
 	 *
 	 * @since 1.0.0
+	 * @since 1.5.0 Process values through the get() method which is aware of constants.
 	 *
 	 * @param string $group
 	 *
-	 * @return mixed
+	 * @return array
 	 */
 	public function get_group( $group ) {
 
 		// Just to feel safe.
 		$group = sanitize_key( $group );
 
-		if ( isset( $this->_options[ $group ] ) ) {
+		/*
+		 * Get the values saved in DB.
+		 * If plugin is configured with constants right from the start - this will not have all the values.
+		 */
+		$options = isset( $this->_options[ $group ] ) ? $this->_options[ $group ] : array();
 
-			foreach ( $this->_options[ $group ] as $g_key => $g_value ) {
-				$options[ $group ][ $g_key ] = $this->get( $group, $g_key );
+		// We need to process certain constants-aware options through actual constants.
+		if ( isset( self::$map[ $group ] ) ) {
+			foreach ( self::$map[ $group ] as $key ) {
+				$options[ $key ] = $this->get( $group, $key );
 			}
-
-			return apply_filters( 'wp_mail_smtp_options_get_group', $this->_options[ $group ], $group );
 		}
 
-		return array();
+		return apply_filters( 'wp_mail_smtp_options_get_group', $options, $group );
 	}
 
 	/**
@@ -201,13 +245,15 @@ class Options {
 	 * Options::init()->get( 'smtp', 'host' ) - will return only SMTP 'host' option.
 	 *
 	 * @since 1.0.0
+	 * @since 2.5.0 Added $strip_slashes method parameter.
 	 *
-	 * @param string $group
-	 * @param string $key
+	 * @param string $group         The option group.
+	 * @param string $key           The option key.
+	 * @param bool   $strip_slashes If the slashes should be stripped from string values.
 	 *
 	 * @return mixed|null Null if value doesn't exist anywhere: in constants, in DB, in a map. So it's completely custom or a typo.
 	 */
-	public function get( $group, $key ) {
+	public function get( $group, $key, $strip_slashes = true ) {
 
 		// Just to feel safe.
 		$group = sanitize_key( $group );
@@ -223,14 +269,14 @@ class Options {
 			if ( isset( $this->_options[ $group ] ) ) {
 				// Get the options key of a group.
 				if ( isset( $this->_options[ $group ][ $key ] ) ) {
-					$value = $this->_options[ $group ][ $key ];
+					$value = $this->get_existing_option_value( $group, $key );
 				} else {
 					$value = $this->postprocess_key_defaults( $group, $key );
 				}
 			} else {
 				/*
 				 * Fallback to default if it doesn't exist in a map.
-				 * Allow to retrive only values from a map.
+				 * Allow to retrieve only values from a map.
 				 */
 				if (
 					isset( self::$map[ $group ] ) &&
@@ -241,8 +287,8 @@ class Options {
 			}
 		}
 
-		// Strip slashes only from values saved in DB. Consts should be processed as is.
-		if ( is_string( $value ) && ! $this->is_const_defined( $group, $key ) ) {
+		// Conditionally strip slashes only from values saved in DB. Constants should be processed as is.
+		if ( $strip_slashes && is_string( $value ) && ! $this->is_const_defined( $group, $key ) ) {
 			$value = stripslashes( $value );
 		}
 
@@ -250,11 +296,35 @@ class Options {
 	}
 
 	/**
+	 * Get the existing cached option value.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param string $group The options group.
+	 * @param string $key   The options key.
+	 *
+	 * @return mixed
+	 */
+	private function get_existing_option_value( $group, $key ) {
+
+		if ( $group === 'smtp' && $key === 'pass' ) {
+			try {
+				return Crypto::decrypt( $this->_options[ $group ][ $key ] );
+			} catch ( \Exception $e ) {
+				return $this->_options[ $group ][ $key ];
+			}
+		}
+
+		return $this->_options[ $group ][ $key ];
+	}
+
+	/**
 	 * Some options may be non-empty by default,
 	 * so we need to postprocess them to convert.
 	 *
 	 * @since 1.0.0
-	 * @since 1.4.0 Added Mailgun:region support.
+	 * @since 1.4.0 Added Mailgun:region.
+	 * @since 1.5.0 Added Outlook/AmazonSES, license key support.
 	 *
 	 * @param string $group
 	 * @param string $key
@@ -292,6 +362,10 @@ class Options {
 			case 'pass':
 				$value = $this->get_const_value( $group, $key, $value );
 				break;
+
+			case 'type':
+				$value = $group === 'license' ? 'lite' : '';
+				break;
 		}
 
 		return apply_filters( 'wp_mail_smtp_options_postprocess_key_defaults', $value, $group, $key );
@@ -304,7 +378,11 @@ class Options {
 	 * General section of options won't have constants, so we are omitting those checks and just return default value.
 	 *
 	 * @since 1.0.0
-	 * @since 1.4.0 Added WPMS_MAILGUN_REGION support.
+	 * @since 1.4.0 Added WPMS_MAILGUN_REGION.
+	 * @since 1.5.0 Added Outlook/AmazonSES, license key support.
+	 * @since 1.6.0 Added Sendinblue.
+	 * @since 1.7.0 Added Do Not Send.
+	 * @since 1.8.0 Added Pepipost API.
 	 *
 	 * @param string $group
 	 * @param string $key
@@ -318,27 +396,35 @@ class Options {
 			return $value;
 		}
 
+		$return = null;
+
 		switch ( $group ) {
 			case 'mail':
 				switch ( $key ) {
 					case 'from_name':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_NAME : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_NAME : $value;
+						break;
 					case 'from_email':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM : $value;
+						break;
 					case 'mailer':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAILER : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAILER : $value;
+						break;
 					case 'return_path':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SET_RETURN_PATH : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SET_RETURN_PATH : $value;
+						break;
 					case 'from_name_force':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_NAME_FORCE : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_NAME_FORCE : $value;
+						break;
 					case 'from_email_force':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_FORCE : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAIL_FROM_FORCE : $value;
+						break;
 				}
 
 				break;
@@ -347,25 +433,32 @@ class Options {
 				switch ( $key ) {
 					case 'host':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_HOST : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTP_HOST : $value;
+						break;
 					case 'port':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_PORT : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTP_PORT : $value;
+						break;
 					case 'encryption':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? ( WPMS_SSL === '' ? 'none' : WPMS_SSL ) : $value;
+						$return = $this->is_const_defined( $group, $key ) ? ( WPMS_SSL === '' ? 'none' : WPMS_SSL ) : $value;
+						break;
 					case 'auth':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_AUTH : $value;
+						$return = $this->is_const_defined( $group, $key ) ? (bool) WPMS_SMTP_AUTH : $value;
+						break;
 					case 'autotls':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_AUTOTLS : $value;
+						$return = $this->is_const_defined( $group, $key ) ? (bool) WPMS_SMTP_AUTOTLS : $value;
+						break;
 					case 'user':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_USER : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTP_USER : $value;
+						break;
 					case 'pass':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SMTP_PASS : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTP_PASS : $value;
+						break;
 				}
 
 				break;
@@ -374,10 +467,62 @@ class Options {
 				switch ( $key ) {
 					case 'client_id':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_GMAIL_CLIENT_ID : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_GMAIL_CLIENT_ID : $value;
+						break;
 					case 'client_secret':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_GMAIL_CLIENT_SECRET : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_GMAIL_CLIENT_SECRET : $value;
+						break;
+				}
+
+				break;
+
+			case 'outlook':
+				switch ( $key ) {
+					case 'client_id':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_OUTLOOK_CLIENT_ID : $value;
+						break;
+					case 'client_secret':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_OUTLOOK_CLIENT_SECRET : $value;
+						break;
+				}
+
+				break;
+
+			case 'zoho':
+				switch ( $key ) {
+					case 'domain':
+						/** No inspection comment @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_ZOHO_DOMAIN : $value;
+						break;
+					case 'client_id':
+						/** No inspection comment @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_ZOHO_CLIENT_ID : $value;
+						break;
+					case 'client_secret':
+						/** No inspection comment @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_ZOHO_CLIENT_SECRET : $value;
+						break;
+				}
+
+				break;
+
+			case 'amazonses':
+				switch ( $key ) {
+					case 'client_id':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_AMAZONSES_CLIENT_ID : $value;
+						break;
+					case 'client_secret':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_AMAZONSES_CLIENT_SECRET : $value;
+						break;
+					case 'region':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_AMAZONSES_REGION : $value;
+						break;
 				}
 
 				break;
@@ -386,13 +531,16 @@ class Options {
 				switch ( $key ) {
 					case 'api_key':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_API_KEY : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_API_KEY : $value;
+						break;
 					case 'domain':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_DOMAIN : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_DOMAIN : $value;
+						break;
 					case 'region':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_REGION : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_MAILGUN_REGION : $value;
+						break;
 				}
 
 				break;
@@ -401,25 +549,87 @@ class Options {
 				switch ( $key ) {
 					case 'api_key':
 						/** @noinspection PhpUndefinedConstantInspection */
-						return $this->is_const_defined( $group, $key ) ? WPMS_SENDGRID_API_KEY : $value;
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SENDGRID_API_KEY : $value;
+						break;
 				}
 
 				break;
+
+			case 'smtpcom':
+				switch ( $key ) {
+					case 'api_key':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTPCOM_API_KEY : $value;
+						break;
+					case 'channel':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SMTPCOM_CHANNEL : $value;
+						break;
+				}
+
+				break;
+
+			case 'sendinblue':
+				switch ( $key ) {
+					case 'api_key':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_SENDINBLUE_API_KEY : $value;
+						break;
+				}
+
+				break;
+
+			case 'pepipostapi':
+				switch ( $key ) {
+					case 'api_key':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_PEPIPOST_API_KEY : $value;
+						break;
+				}
+
+				break;
+
+			case 'license':
+				switch ( $key ) {
+					case 'key':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_LICENSE_KEY : $value;
+						break;
+				}
+
+				break;
+
+			case 'general':
+				switch ( $key ) {
+					case 'do_not_send':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = $this->is_const_defined( $group, $key ) ? WPMS_DO_NOT_SEND : $value;
+						break;
+				}
+
+				break;
+
+			default:
+				// Always return the default value if nothing from above matches the request.
+				$return = $value;
 		}
 
-		// Always return the default value if nothing from above matches the request.
-		return $value;
+		return apply_filters( 'wp_mail_smtp_options_get_const_value', $return, $group, $key, $value );
 	}
 
 	/**
 	 * Whether constants redefinition is enabled or not.
 	 *
 	 * @since 1.0.0
+	 * @since 1.5.0 Added filter to redefine the value.
 	 *
 	 * @return bool
 	 */
 	public function is_const_enabled() {
-		return defined( 'WPMS_ON' ) && WPMS_ON === true;
+
+		$return = defined( 'WPMS_ON' ) && WPMS_ON === true;
+
+		return apply_filters( 'wp_mail_smtp_options_is_const_enabled', $return );
 	}
 
 	/**
@@ -428,6 +638,10 @@ class Options {
 	 * and display them differently.
 	 *
 	 * @since 1.0.0
+	 * @since 1.5.0 Added a filter, Outlook/AmazonSES, license key support.
+	 * @since 1.6.0 Added Sendinblue.
+	 * @since 1.7.0 Added Do Not Send.
+	 * @since 1.8.0 Added Pepipost API.
 	 *
 	 * @param string $group
 	 * @param string $key
@@ -441,24 +655,31 @@ class Options {
 		}
 
 		// Just to feel safe.
-		$group = sanitize_key( $group );
-		$key   = sanitize_key( $key );
+		$group  = sanitize_key( $group );
+		$key    = sanitize_key( $key );
+		$return = false;
 
 		switch ( $group ) {
 			case 'mail':
 				switch ( $key ) {
 					case 'from_name':
-						return defined( 'WPMS_MAIL_FROM_NAME' ) && WPMS_MAIL_FROM_NAME;
+						$return = defined( 'WPMS_MAIL_FROM_NAME' ) && WPMS_MAIL_FROM_NAME;
+						break;
 					case 'from_email':
-						return defined( 'WPMS_MAIL_FROM' ) && WPMS_MAIL_FROM;
+						$return = defined( 'WPMS_MAIL_FROM' ) && WPMS_MAIL_FROM;
+						break;
 					case 'mailer':
-						return defined( 'WPMS_MAILER' ) && WPMS_MAILER;
+						$return = defined( 'WPMS_MAILER' ) && WPMS_MAILER;
+						break;
 					case 'return_path':
-						return defined( 'WPMS_SET_RETURN_PATH' ) && ( WPMS_SET_RETURN_PATH === 'true' || WPMS_SET_RETURN_PATH === true );
+						$return = defined( 'WPMS_SET_RETURN_PATH' ) && ( WPMS_SET_RETURN_PATH === 'true' || WPMS_SET_RETURN_PATH === true );
+						break;
 					case 'from_name_force':
-						return defined( 'WPMS_MAIL_FROM_NAME_FORCE' ) && ( WPMS_MAIL_FROM_NAME_FORCE === 'true' || WPMS_MAIL_FROM_NAME_FORCE === true );
+						$return = defined( 'WPMS_MAIL_FROM_NAME_FORCE' ) && ( WPMS_MAIL_FROM_NAME_FORCE === 'true' || WPMS_MAIL_FROM_NAME_FORCE === true );
+						break;
 					case 'from_email_force':
-						return defined( 'WPMS_MAIL_FROM_FORCE' ) && ( WPMS_MAIL_FROM_FORCE === 'true' || WPMS_MAIL_FROM_FORCE === true );
+						$return = defined( 'WPMS_MAIL_FROM_FORCE' ) && ( WPMS_MAIL_FROM_FORCE === 'true' || WPMS_MAIL_FROM_FORCE === true );
+						break;
 				}
 
 				break;
@@ -466,19 +687,26 @@ class Options {
 			case 'smtp':
 				switch ( $key ) {
 					case 'host':
-						return defined( 'WPMS_SMTP_HOST' ) && WPMS_SMTP_HOST;
+						$return = defined( 'WPMS_SMTP_HOST' ) && WPMS_SMTP_HOST;
+						break;
 					case 'port':
-						return defined( 'WPMS_SMTP_PORT' ) && WPMS_SMTP_PORT;
+						$return = defined( 'WPMS_SMTP_PORT' ) && WPMS_SMTP_PORT;
+						break;
 					case 'encryption':
-						return defined( 'WPMS_SSL' );
+						$return = defined( 'WPMS_SSL' );
+						break;
 					case 'auth':
-						return defined( 'WPMS_SMTP_AUTH' ) && WPMS_SMTP_AUTH;
+						$return = defined( 'WPMS_SMTP_AUTH' );
+						break;
 					case 'autotls':
-						return defined( 'WPMS_SMTP_AUTOTLS' ) && WPMS_SMTP_AUTOTLS;
+						$return = defined( 'WPMS_SMTP_AUTOTLS' );
+						break;
 					case 'user':
-						return defined( 'WPMS_SMTP_USER' ) && WPMS_SMTP_USER;
+						$return = defined( 'WPMS_SMTP_USER' ) && WPMS_SMTP_USER;
+						break;
 					case 'pass':
-						return defined( 'WPMS_SMTP_PASS' ) && WPMS_SMTP_PASS;
+						$return = defined( 'WPMS_SMTP_PASS' ) && WPMS_SMTP_PASS;
+						break;
 				}
 
 				break;
@@ -486,9 +714,53 @@ class Options {
 			case 'gmail':
 				switch ( $key ) {
 					case 'client_id':
-						return defined( 'WPMS_GMAIL_CLIENT_ID' ) && WPMS_GMAIL_CLIENT_ID;
+						$return = defined( 'WPMS_GMAIL_CLIENT_ID' ) && WPMS_GMAIL_CLIENT_ID;
+						break;
 					case 'client_secret':
-						return defined( 'WPMS_GMAIL_CLIENT_SECRET' ) && WPMS_GMAIL_CLIENT_SECRET;
+						$return = defined( 'WPMS_GMAIL_CLIENT_SECRET' ) && WPMS_GMAIL_CLIENT_SECRET;
+						break;
+				}
+
+				break;
+
+			case 'outlook':
+				switch ( $key ) {
+					case 'client_id':
+						$return = defined( 'WPMS_OUTLOOK_CLIENT_ID' ) && WPMS_OUTLOOK_CLIENT_ID;
+						break;
+					case 'client_secret':
+						$return = defined( 'WPMS_OUTLOOK_CLIENT_SECRET' ) && WPMS_OUTLOOK_CLIENT_SECRET;
+						break;
+				}
+
+				break;
+
+			case 'zoho':
+				switch ( $key ) {
+					case 'domain':
+						$return = defined( 'WPMS_ZOHO_DOMAIN' ) && WPMS_ZOHO_DOMAIN;
+						break;
+					case 'client_id':
+						$return = defined( 'WPMS_ZOHO_CLIENT_ID' ) && WPMS_ZOHO_CLIENT_ID;
+						break;
+					case 'client_secret':
+						$return = defined( 'WPMS_ZOHO_CLIENT_SECRET' ) && WPMS_ZOHO_CLIENT_SECRET;
+						break;
+				}
+
+				break;
+
+			case 'amazonses':
+				switch ( $key ) {
+					case 'client_id':
+						$return = defined( 'WPMS_AMAZONSES_CLIENT_ID' ) && WPMS_AMAZONSES_CLIENT_ID;
+						break;
+					case 'client_secret':
+						$return = defined( 'WPMS_AMAZONSES_CLIENT_SECRET' ) && WPMS_AMAZONSES_CLIENT_SECRET;
+						break;
+					case 'region':
+						$return = defined( 'WPMS_AMAZONSES_REGION' ) && WPMS_AMAZONSES_REGION;
+						break;
 				}
 
 				break;
@@ -496,11 +768,14 @@ class Options {
 			case 'mailgun':
 				switch ( $key ) {
 					case 'api_key':
-						return defined( 'WPMS_MAILGUN_API_KEY' ) && WPMS_MAILGUN_API_KEY;
+						$return = defined( 'WPMS_MAILGUN_API_KEY' ) && WPMS_MAILGUN_API_KEY;
+						break;
 					case 'domain':
-						return defined( 'WPMS_MAILGUN_DOMAIN' ) && WPMS_MAILGUN_DOMAIN;
+						$return = defined( 'WPMS_MAILGUN_DOMAIN' ) && WPMS_MAILGUN_DOMAIN;
+						break;
 					case 'region':
-						return defined( 'WPMS_MAILGUN_REGION' ) && WPMS_MAILGUN_REGION;
+						$return = defined( 'WPMS_MAILGUN_REGION' ) && WPMS_MAILGUN_REGION;
+						break;
 				}
 
 				break;
@@ -508,113 +783,87 @@ class Options {
 			case 'sendgrid':
 				switch ( $key ) {
 					case 'api_key':
-						return defined( 'WPMS_SENDGRID_API_KEY' ) && WPMS_SENDGRID_API_KEY;
+						$return = defined( 'WPMS_SENDGRID_API_KEY' ) && WPMS_SENDGRID_API_KEY;
+						break;
+				}
+
+				break;
+
+			case 'smtpcom':
+				switch ( $key ) {
+					case 'api_key':
+						$return = defined( 'WPMS_SMTPCOM_API_KEY' ) && WPMS_SMTPCOM_API_KEY;
+						break;
+					case 'channel':
+						$return = defined( 'WPMS_SMTPCOM_CHANNEL' ) && WPMS_SMTPCOM_CHANNEL;
+						break;
+				}
+
+				break;
+
+			case 'sendinblue':
+				switch ( $key ) {
+					case 'api_key':
+						$return = defined( 'WPMS_SENDINBLUE_API_KEY' ) && WPMS_SENDINBLUE_API_KEY;
+						break;
+				}
+
+				break;
+
+			case 'pepipostapi':
+				switch ( $key ) {
+					case 'api_key':
+						$return = defined( 'WPMS_PEPIPOST_API_KEY' ) && WPMS_PEPIPOST_API_KEY;
+						break;
+				}
+
+				break;
+
+			case 'license':
+				switch ( $key ) {
+					case 'key':
+						$return = defined( 'WPMS_LICENSE_KEY' ) && WPMS_LICENSE_KEY;
+						break;
+				}
+
+				break;
+
+			case 'general':
+				switch ( $key ) {
+					case 'do_not_send':
+						/** @noinspection PhpUndefinedConstantInspection */
+						$return = defined( 'WPMS_DO_NOT_SEND' ) && WPMS_DO_NOT_SEND;
+						break;
 				}
 
 				break;
 		}
 
-		return false;
+		return apply_filters( 'wp_mail_smtp_options_is_const_defined', $return, $group, $key );
 	}
 
 	/**
 	 * Set plugin options, all at once.
 	 *
 	 * @since 1.0.0
-	 * @since 1.3.0 Added $once argument to save option only if they don't exist already.
-	 * @since 1.4.0 Added Mailgun:region support.
+	 * @since 1.3.0 Added $once argument to save options only if they don't exist already.
+	 * @since 1.4.0 Added Mailgun:region.
+	 * @since 1.5.0 Added Outlook/AmazonSES, Email Log. Stop saving const values into DB.
+	 * @since 2.5.0 Added $overwrite_existing method parameter.
 	 *
-	 * @param array $options Plugin options to save.
-	 * @param bool $once Whether to update existing options or to add these options only once.
+	 * @param array $options            Plugin options to save.
+	 * @param bool  $once               Whether to update existing options or to add these options only once.
+	 * @param bool  $overwrite_existing Whether to overwrite existing settings or merge these passed options with existing ones.
 	 */
-	public function set( $options, $once = false ) {
-		/*
-		 * Process general options.
-		 */
-		foreach ( (array) $options as $group => $keys ) {
-			foreach ( $keys as $option_name => $option_value ) {
-				switch ( $group ) {
-					case 'mail':
-						switch ( $option_name ) {
-							case 'from_name':
-							case 'mailer':
-								$options[ $group ][ $option_name ] = $this->get_const_value( $group, $option_name, sanitize_text_field( $option_value ) );
-								break;
-							case 'from_email':
-								if ( filter_var( $option_value, FILTER_VALIDATE_EMAIL ) ) {
-									$options[ $group ][ $option_name ] = $this->get_const_value( $group, $option_name, sanitize_email( $option_value ) );
-								}
-								break;
-							case 'return_path':
-							case 'from_name_force':
-							case 'from_email_force':
-								$options[ $group ][ $option_name ] = $this->get_const_value( $group, $option_name, (bool) $option_value );
-								break;
-						}
-						break;
+	public function set( $options, $once = false, $overwrite_existing = true ) {
 
-					case 'general':
-						switch ( $option_name ) {
-							case 'do_not_send':
-							case 'am_notifications_hidden':
-							case 'uninstall':
-								$options[ $group ][ $option_name ] = (bool) $option_value;
-								break;
-						}
-				}
-			}
+		// Merge existing settings with new values.
+		if ( ! $overwrite_existing ) {
+			$options = self::array_merge_recursive( $this->get_all_raw(), $options );
 		}
 
-		/*
-		 * Process mailers-specific options.
-		 */
-		if (
-			! empty( $options['mail']['mailer'] ) &&
-			isset( $options[ $options['mail']['mailer'] ] ) &&
-			in_array( $options['mail']['mailer'], array( 'pepipost', 'smtp', 'sendgrid', 'mailgun', 'gmail' ), true )
-		) {
-
-			$mailer = $options['mail']['mailer'];
-
-			foreach ( $options[ $mailer ] as $option_name => $option_value ) {
-				switch ( $option_name ) {
-					case 'host': // smtp.
-					case 'user': // smtp.
-					case 'encryption': // smtp.
-					case 'region': // mailgun.
-						$options[ $mailer ][ $option_name ] = $this->get_const_value( $mailer, $option_name, sanitize_text_field( $option_value ) );
-						break; // smtp.
-					case 'port':
-						$options[ $mailer ][ $option_name ] = $this->get_const_value( $mailer, $option_name, (int) $option_value );
-						break;
-					case 'auth': // smtp.
-					case 'autotls': // smtp.
-						$option_value = $option_value === 'yes' || $option_value === true;
-
-						$options[ $mailer ][ $option_name ] = $this->get_const_value( $mailer, $option_name, $option_value );
-						break;
-
-					case 'pass': // smtp.
-						$option_value = is_string( $option_value ) ? trim( $option_value ) : $option_value;
-
-						// Do not process as they may contain certain special characters, but allow to be overwritten using constants.
-						$options[ $mailer ][ $option_name ] = $this->get_const_value( $mailer, $option_name, $option_value );
-						break;
-
-					case 'api_key': // mailgun/sendgrid.
-					case 'domain': // mailgun.
-					case 'client_id': // gmail.
-					case 'client_secret': // gmail.
-					case 'auth_code': // gmail.
-					case 'access_token': // gmail.
-						$option_value = is_string( $option_value ) ? sanitize_text_field( $option_value ) : $option_value;
-
-						$options[ $mailer ][ $option_name ] = $this->get_const_value( $mailer, $option_name, $option_value );
-						break;
-				}
-			}
-		}
-
+		$options = $this->process_generic_options( $options );
+		$options = $this->process_mailer_specific_options( $options );
 		$options = apply_filters( 'wp_mail_smtp_options_set', $options );
 
 		// Whether to update existing options or to add these options only once if they don't exist yet.
@@ -626,6 +875,132 @@ class Options {
 
 		// Now we need to re-cache values.
 		$this->populate_options();
+
+		do_action( 'wp_mail_smtp_options_set_after', $options );
+	}
+
+	/**
+	 * Process the generic plugin options.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param array $options The options array.
+	 *
+	 * @return array
+	 */
+	private function process_generic_options( $options ) { // phpcs:ignore
+
+		foreach ( (array) $options as $group => $keys ) {
+			foreach ( $keys as $option_name => $option_value ) {
+				switch ( $group ) {
+					case 'mail':
+						switch ( $option_name ) {
+							case 'from_name':
+							case 'mailer':
+								$options[ $group ][ $option_name ] = sanitize_text_field( $option_value );
+								break;
+							case 'from_email':
+								if ( filter_var( $option_value, FILTER_VALIDATE_EMAIL ) ) {
+									$options[ $group ][ $option_name ] = sanitize_email( $option_value );
+								} else {
+									$options[ $group ][ $option_name ] = sanitize_email(
+										wp_mail_smtp()->get_processor()->get_default_email()
+									);
+								}
+								break;
+							case 'return_path':
+							case 'from_name_force':
+							case 'from_email_force':
+								$options[ $group ][ $option_name ] = (bool) $option_value;
+								break;
+						}
+						break;
+
+					case 'general':
+						switch ( $option_name ) {
+							case 'do_not_send':
+							case 'am_notifications_hidden':
+							case 'email_delivery_errors_hidden':
+							case 'uninstall':
+							case UsageTracking::SETTINGS_SLUG:
+								$options[ $group ][ $option_name ] = (bool) $option_value;
+								break;
+						}
+				}
+			}
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Process mailers-specific plugin options.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param array $options The options array.
+	 *
+	 * @return array
+	 */
+	private function process_mailer_specific_options( $options ) { // phpcs:ignore
+
+		if (
+			! empty( $options['mail']['mailer'] ) &&
+			isset( $options[ $options['mail']['mailer'] ] ) &&
+			in_array( $options['mail']['mailer'], [ 'pepipost', 'pepipostapi', 'smtp', 'sendgrid', 'smtpcom', 'sendinblue', 'mailgun', 'gmail', 'outlook', 'zoho' ], true )
+		) {
+
+			$mailer = $options['mail']['mailer'];
+
+			foreach ( $options[ $mailer ] as $option_name => $option_value ) {
+				switch ( $option_name ) {
+					case 'host': // smtp.
+					case 'user': // smtp.
+					case 'encryption': // smtp.
+					case 'region': // mailgun/amazonses.
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? '' : sanitize_text_field( $option_value );
+						break; // smtp.
+					case 'port':
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? 25 : (int) $option_value;
+						break;
+					case 'auth': // smtp.
+					case 'autotls': // smtp.
+						$option_value = (bool) $option_value;
+
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? false : $option_value;
+						break;
+
+					case 'pass': // smtp.
+						// Do not process as they may contain certain special characters, but allow to be overwritten using constants.
+						$option_value                       = trim( (string) $option_value );
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? '' : $option_value;
+
+						if ( $mailer === 'smtp' && ! $this->is_const_defined( 'smtp', 'pass' ) ) {
+							try {
+								$options[ $mailer ][ $option_name ] = Crypto::encrypt( $option_value );
+							} catch ( \Exception $e ) {} // phpcs:ignore
+						}
+						break;
+
+					case 'api_key': // mailgun/sendgrid/sendinblue/pepipostapi/smtpcom.
+					case 'domain': // mailgun/zoho.
+					case 'client_id': // gmail/outlook/amazonses/zoho.
+					case 'client_secret': // gmail/outlook/amazonses/zoho.
+					case 'auth_code': // gmail/outlook.
+					case 'channel': // smtpcom.
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? '' : sanitize_text_field( $option_value );
+						break;
+
+					case 'access_token': // gmail/outlook/zoho, is an array.
+					case 'user_details': // outlook/zoho, is an array.
+						// These options don't support constants.
+						$options[ $mailer ][ $option_name ] = $option_value;
+						break;
+				}
+			}
+		}
+
+		return $options;
 	}
 
 	/**
@@ -678,14 +1053,42 @@ class Options {
 	}
 
 	/**
-	 * Check whether the site is using Pepipost or not.
+	 * Check whether the site is using Pepipost SMTP or not.
+	 *
+	 * @deprecated 2.4.0
 	 *
 	 * @since 1.0.0
 	 *
 	 * @return bool
 	 */
 	public function is_pepipost_active() {
-		return apply_filters( 'wp_mail_smtp_options_is_pepipost_active', $this->get( 'mail', 'mailer' ) === 'pepipost' );
+
+		_deprecated_function(
+			__METHOD__,
+			'2.4.0',
+			'WPMailSMTP\Options::is_mailer_active()'
+		);
+
+		return apply_filters( 'wp_mail_smtp_options_is_pepipost_active', $this->is_mailer_active( 'pepipost' ) );
+	}
+
+	/**
+	 * Check whether the site is using provided mailer or not.
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param string $mailer The mailer slug.
+	 *
+	 * @return bool
+	 */
+	public function is_mailer_active( $mailer ) {
+
+		$mailer = sanitize_key( $mailer );
+
+		return apply_filters(
+			"wp_mail_smtp_options_is_mailer_active_{$mailer}",
+			$this->get( 'mail', 'mailer' ) === $mailer
+		);
 	}
 
 	/**
@@ -697,5 +1100,25 @@ class Options {
 	 */
 	public function is_mailer_smtp() {
 		return apply_filters( 'wp_mail_smtp_options_is_mailer_smtp', in_array( $this->get( 'mail', 'mailer' ), array( 'pepipost', 'smtp' ), true ) );
+	}
+
+	/**
+	 * Get all the options, but without stripping the slashes.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @return array
+	 */
+	public function get_all_raw() {
+
+		$options = $this->_options;
+
+		foreach ( $options as $group => $g_value ) {
+			foreach ( $g_value as $key => $value ) {
+				$options[ $group ][ $key ] = $this->get( $group, $key, false );
+			}
+		}
+
+		return $options;
 	}
 }

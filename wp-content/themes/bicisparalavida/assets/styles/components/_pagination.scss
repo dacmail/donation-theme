@@ -5,6 +5,7 @@
   margin: 0 auto;;
   li {
     display: inline-block;
+    padding: rem(16px);
     .page-numbers {
       display: inline-block;
       color: $primary;
