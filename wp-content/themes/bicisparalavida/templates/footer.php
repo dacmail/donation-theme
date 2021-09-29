@@ -17,6 +17,9 @@
     - <a href="<?= get_theme_mod('ungrynerd_policy'); ?>">
       <?php esc_html_e('Política de privacidad', 'ungrynerd'); ?>
     </a>
+    - <a href="<?= get_theme_mod('ungrynerd_cookies'); ?>">
+      <?php esc_html_e('Política de cookies', 'ungrynerd'); ?>
+    </a>
     - <a href="<?= get_theme_mod('ungrynerd_contact'); ?>">
       <?php esc_html_e('Contacta', 'ungrynerd'); ?>
     </a>
