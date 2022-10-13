@@ -1,5 +1,5 @@
-<form method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" validate>
-  <p><input name="donor_email" type="email" placeholder="Correo electrónico" required></p>
+<form id="donationForm" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" validate>
+  <p><input name="donor_email" id="email" type="email" placeholder="Correo electrónico" required></p>
   <p><input name="donor_name" type="text" placeholder="Nombre y apellidos" required></p>
   <p><input name="donor_cp" type="text" pattern="[0-9]{5}" placeholder="Código postal" required></p>
 
@@ -11,3 +11,20 @@
   <?php wp_nonce_field('new_donation', 'new_donation_nonce'); ?>
   <input name="action" value="new_donation" type="hidden">
 </form>
+
+<script>
+  jQuery('#donationForm').submit(function(event) {
+    event.preventDefault();
+    var email = jQuery('#email').val();
+
+    grecaptcha.ready(function() {
+      grecaptcha.execute('6LeNMG0aAAAAADv2QgAgcBFmQIWNc-4-4645vQzY', {
+        action: 'subscribe_newsletter'
+      }).then(function(token) {
+        jQuery('#donationForm').prepend('<input type="hidden" name="r_token" value="' + token + '">');
+        jQuery('#donationForm').prepend('<input type="hidden" name="r_action" value="subscribe_newsletter">');
+        jQuery('#donationForm').unbind('submit').submit();
+      });
+    });
+  });
+</script>

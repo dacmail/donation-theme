@@ -196,15 +196,42 @@ add_action('wp_ajax_new_donation', __NAMESPACE__ . '\\process_new_donation');
 add_action('wp_ajax_nopriv_new_donation', __NAMESPACE__ . '\\process_new_donation');
 
 function process_new_donation() {
-  if ( empty($_POST) || !wp_verify_nonce($_POST['new_donation_nonce'], 'new_donation')) {
+  define("RECAPTCHA_V3_SECRET_KEY", '6LeNMG0aAAAAAIpSb501n-R1nLdLGcZsoQJ324yB');
+
+  if (isset($_POST['donor_email']) && $_POST['donor_email']) {
+    $email = filter_var($_POST['donor_email'], FILTER_SANITIZE_STRING);
+  } else {
+    // set error message and redirect back to form...
+    header('location: dona');
+    exit;
+  }
+
+  $token = $_POST['r_token'];
+  $action = $_POST['r_action'];
+
+  // call curl to POST request
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, "https://www.google.com/recaptcha/api/siteverify");
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array('secret' => RECAPTCHA_V3_SECRET_KEY, 'response' => $token)));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $response = curl_exec($ch);
+  curl_close($ch);
+  $arrResponse = json_decode($response, true);
+
+  // verify the response
+  if ($arrResponse["success"] == '1' && $arrResponse["action"] == $action && $arrResponse["score"] >= 0.5) {
+    if (empty($_POST) || !wp_verify_nonce($_POST['new_donation_nonce'], 'new_donation')) {
       echo 'You targeted the right function, but sorry, your nonce did not verify.';
       die();
-  } else {
-      $form = new DonateForm\DonateForm($_POST['donor_name'], $_POST['donor_email'], $_POST['donor_cp'], $_POST['accept_skoda']);
+    } else {
+      $form = new DonateForm\DonateForm($_POST['donor_name'], $email, $_POST['donor_cp'], $_POST['accept_skoda']);
       $form->new_donation();
       $form->send_new_donation_email();
       wp_redirect(add_query_arg('thanks', 'yes', get_permalink($form->donation)));
+    }
   }
+
   die();
 }
 
