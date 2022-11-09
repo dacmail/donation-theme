@@ -65,3 +65,48 @@ h3 {
     height: 100% !important;
   }
 }
+
+.c-donate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 8px 24px;
+  font-size: rem(16px);
+  background-color: $primary;
+  color: $white;
+  position: fixed;
+  right: 0;
+  top: 25%;
+  transform: rotate(-90deg);
+  transform-origin: right bottom;
+  z-index: 10;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+
+  @media (min-width: $md) {
+    padding: 16px 40px;
+    gap: 16px;
+    font-size: rem(24px);
+  }
+
+  svg {
+    transform: rotate(90deg) scale(0.65);
+
+    @media (min-width: $md) {
+      transform: rotate(90deg) scale(1);
+    }
+
+    path {
+      transition: $transition-standard;
+      fill: $white;
+    }
+  }
+
+  &:hover {
+    text-decoration: none;
+    background-color: $dark;
+  }
+}

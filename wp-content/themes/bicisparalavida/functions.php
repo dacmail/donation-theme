@@ -41,3 +41,10 @@ add_action(
     }
   }
 );
+
+if (function_exists('acf_add_options_page')) {
+  acf_add_options_page(array(
+    'page_title' => 'Bicis para la vida',
+    'menu_title' => 'Bicis para la vida',
+  ));
+}
