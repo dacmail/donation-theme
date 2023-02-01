@@ -12,6 +12,7 @@
   .custom-logo-link {
     display: block;
     width: 160px;
+    margin-right: auto;
 
     @media (min-width: $sm) {
       width: 260px;
@@ -31,6 +32,8 @@
       top: auto;
       left: auto;
       width: auto;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .menu {
@@ -89,6 +92,7 @@
     width: 40px;
     text-decoration: none;
     position: relative;
+    margin-left: $gap*4;
 
     @media (min-width: $sm) {
       display: none;
@@ -132,5 +136,9 @@
         }
       }
     }
+  }
+
+  &__social {
+    margin-right: $gap;
   }
 }

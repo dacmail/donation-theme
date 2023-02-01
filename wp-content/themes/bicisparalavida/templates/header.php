@@ -1,26 +1,35 @@
+<?php
+
+use Roots\Sage\Extras; ?>
+
 <header class="header">
   <div class="container">
-    <?php if (has_custom_logo()): ?>
+    <?php if (has_custom_logo()) : ?>
       <?php the_custom_logo(); ?>
-    <?php else: ?>
+    <?php else : ?>
       <a class="header__site-name" href="<?= esc_url(home_url('/')); ?>">
         <?php bloginfo('name'); ?>
       </a>
     <?php endif ?>
-    <a href="#" class="header__menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-    </a>
+
     <?php
     if (has_nav_menu('primary_navigation')) :
       wp_nav_menu([
-      'theme_location' => 'primary_navigation',
-      'menu_class' => 'menu',
-      'container' => 'nav',
-      'container_class' => 'header__menu'
+        'theme_location' => 'primary_navigation',
+        'menu_class' => 'menu',
+        'container' => 'nav',
+        'container_class' => 'header__menu'
       ]);
     endif;
     ?>
+    <a class="header__social" target="_blank" href="https://www.facebook.com/fundacionalbertocontador"><?= Extras\inline_svg('facebook'); ?></a>
+    <a class="header__social" target="_blank" href="https://www.instagram.com/fundacionalbertocontador/"><?= Extras\inline_svg('instagram'); ?></a>
+    <a class="header__social" target="_blank" href="https://twitter.com/FundContador"><?= Extras\inline_svg('twitter'); ?></a>
+
+    <a href="#" class="header__menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </a>
   </div>
 </header>
