@@ -12,9 +12,10 @@
   .custom-logo-link {
     display: block;
     width: 160px;
-    margin-right: auto;
+    margin-right: 16px;
 
-    @media (min-width: $sm) {
+    @media (min-width: $md) {
+      margin-right: auto;
       width: 260px;
     }
   }
@@ -27,7 +28,7 @@
     background-color: $primary;
     transition: $transition-standard;
 
-    @media (min-width: $sm) {
+    @media (min-width: $md) {
       position: unset;
       top: auto;
       left: auto;
@@ -45,11 +46,11 @@
       margin: 0;
       min-height: calc(100vh - 115px);
 
-      @media (min-width: $sm) {
+      @media (min-width: $md) {
         min-height: 0;
       }
 
-      @media (min-width: $sm) {
+      @media (min-width: $md) {
         flex-flow: row;
         justify-content: space-between;
       }
@@ -60,7 +61,7 @@
       text-transform: lowercase;
       font-weight: 400;
 
-      @media (min-width: $sm) {
+      @media (min-width: $md) {
         font-size: rem(18px);
         margin-left: $gap * 5;
       }
@@ -94,7 +95,7 @@
     position: relative;
     margin-left: $gap*4;
 
-    @media (min-width: $sm) {
+    @media (min-width: $md) {
       display: none;
     }
 

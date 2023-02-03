@@ -22,9 +22,10 @@ use Roots\Sage\Extras; ?>
       ]);
     endif;
     ?>
-    <a class="header__social" target="_blank" href="https://www.facebook.com/fundacionalbertocontador"><?= Extras\inline_svg('facebook'); ?></a>
-    <a class="header__social" target="_blank" href="https://www.instagram.com/fundacionalbertocontador/"><?= Extras\inline_svg('instagram'); ?></a>
-    <a class="header__social" target="_blank" href="https://twitter.com/FundContador"><?= Extras\inline_svg('twitter'); ?></a>
+    <a class="header__social" target="_blank" href="https://www.facebook.com/bicisparalavida"><?= Extras\inline_svg('facebook'); ?></a>
+    <a class="header__social" target="_blank" href="https://www.instagram.com/bicisparalavida/"><?= Extras\inline_svg('instagram'); ?></a>
+    <a class="header__social" target="_blank" href="https://twitter.com/BicisparalaVida"><?= Extras\inline_svg('twitter'); ?></a>
+    <a class="header__social" target="_blank" href="https://www.youtube.com/@FundacionAlbertoContador"><?= Extras\inline_svg('youtube'); ?></a>
 
     <a href="#" class="header__menu-toggle">
       <span></span>
