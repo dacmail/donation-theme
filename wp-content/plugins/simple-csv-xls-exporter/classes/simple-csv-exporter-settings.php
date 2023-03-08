@@ -33,6 +33,8 @@
 				register_setting('wp_ccsve-group', 'ccsve_tax_terms');
 				register_setting('wp_ccsve-group', 'ccsve_custom_fields');
 				register_setting('wp_ccsve-group', 'ccsve_woocommerce_fields');
+				//since 1.5.4.2 - July 11, 2020
+				register_setting('wp_ccsve-group', 'ccsve_date_min');
 
 				add_settings_section(
 					'simple_csv_exporter_settings-section',
@@ -113,6 +115,16 @@
 					 'simple_csv_exporter_settings',
 					 'simple_csv_exporter_settings-section'
 				);*/
+				
+				//since 1.5.4.2 - July 11, 2020
+				add_settings_field(
+					'ccsve_date_min',
+					__("Minimum Created Date", TEXTDOMAIN),
+					array(&$this, 'settings_field_select_date_min'),
+					'Simple_CSV_Exporter_Settings',
+					'simple_csv_exporter_settings-section'
+				);
+				
 			}
 
 			/**
@@ -122,7 +134,7 @@
 				$csv_delimiter = get_option('ccsve_delimiter');
 
 				if(!$csv_delimiter) {
-					$csv_delimiter = '|';
+					$csv_delimiter = ',';
 				}
 				?>
             <p>
@@ -395,6 +407,35 @@
 				 } // if class exists
 			}*/
 
+			//since 1.5.4.2 - July 11, 2020
+			public function settings_field_select_date_min() {
+				$ccsve_date_min = get_option('ccsve_date_min');
+				
+				if(!$ccsve_date_min) {
+					$ccsve_date_min = '';
+					$date_placeholder = '';
+				} else {
+					$date_placeholder = date('m/d/yy', strtotime($ccsve_date_min));
+				}
+
+				?>
+				<p><input type="text" id="ccsve_date_min" class="" name="ccsve_date_min" value="<?php echo $date_placeholder; ?>"/></p>
+				<p class="description"><?php _e("Export only content created from this date (format: <em>mm/dd/yyyy</em>)", TEXTDOMAIN); ?></p>
+
+				<script>
+				jQuery(document).ready(function(){
+					jQuery('#ccsve_date_min').datepicker({
+						dateFormat: 'mm/dd/yy',
+						changeMonth: true,
+            			changeYear: true,
+						}); 
+				});
+				</script>
+
+				
+				<?php
+			}
+
 			// ADD MENU
 			public function add_menu() {
 				// Add a page to manage this plugin's settings
@@ -421,7 +462,8 @@
                   <div class="box-content">
                      <p>
 								<?php
-									$export_url = get_admin_url("", "tools.php?page=Simple_CSV_Exporter_Settings&export=");
+									//$export_url = get_admin_url("", "tools.php?page=Simple_CSV_Exporter_Settings&export=");
+									$export_url = get_bloginfo('url').'/?export=';
 
 									_e("This page allows you to specify what posts are being exported. You can specify them via post types, taxonomies, custom fields or individual post IDs. After saving the settings, you will be able to export the data in CSV or XLS format by using the buttons on the bottom or by clicking the links below:", TEXTDOMAIN);
 								?>
@@ -461,7 +503,7 @@
                         <li>
                            <p>
                               <strong>
-											<?php _e('XLS and post type "page":', TEXTDOMAIN); ?>
+								<?php _e('XLS and post type "page":', TEXTDOMAIN); ?>
                               </strong>
                            </p>
                            <p>

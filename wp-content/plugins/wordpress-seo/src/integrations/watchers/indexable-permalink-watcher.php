@@ -46,7 +46,7 @@ class Indexable_Permalink_Watcher implements Integration_Interface {
 	protected $indexable_helper;
 
 	/**
-	 * Returns the conditionals based in which this loadable should be active.
+	 * Returns the conditionals based on which this loadable should be active.
 	 *
 	 * @return array
 	 */
@@ -81,6 +81,7 @@ class Indexable_Permalink_Watcher implements Integration_Interface {
 		\add_action( 'update_option_category_base', [ $this, 'reset_permalinks_term' ], 10, 3 );
 		\add_action( 'update_option_tag_base', [ $this, 'reset_permalinks_term' ], 10, 3 );
 		\add_action( 'wpseo_permalink_structure_check', [ $this, 'force_reset_permalinks' ] );
+		\add_action( 'wpseo_deactivate', [ $this, 'unschedule_cron' ] );
 	}
 
 	/**
@@ -119,11 +120,11 @@ class Indexable_Permalink_Watcher implements Integration_Interface {
 	/**
 	 * Resets the term indexables when the base has been changed.
 	 *
-	 * @param string $old  Unused. The old option value.
-	 * @param string $new  Unused. The new option value.
-	 * @param string $type The option name.
+	 * @param string $old_value Unused. The old option value.
+	 * @param string $new_value Unused. The new option value.
+	 * @param string $type      The option name.
 	 */
-	public function reset_permalinks_term( $old, $new, $type ) {
+	public function reset_permalinks_term( $old_value, $new_value, $type ) {
 		$subtype = $type;
 
 		$reason = Indexing_Reasons::REASON_PERMALINK_SETTINGS;
@@ -195,7 +196,7 @@ class Indexable_Permalink_Watcher implements Integration_Interface {
 
 			$new_taxonomy_bases[ $taxonomy ] = $taxonomy_slug;
 
-			if ( ! array_key_exists( $taxonomy, $custom_taxonomy_bases ) ) {
+			if ( ! \array_key_exists( $taxonomy, $custom_taxonomy_bases ) ) {
 				continue;
 			}
 
@@ -254,24 +255,19 @@ class Indexable_Permalink_Watcher implements Integration_Interface {
 			return;
 		}
 
-		\wp_schedule_event( time(), 'daily', 'wpseo_permalink_structure_check' );
+		\wp_schedule_event( \time(), 'daily', 'wpseo_permalink_structure_check' );
 	}
 
-	/* ********************* DEPRECATED METHODS ********************* */
-
 	/**
-	 * Resets the permalinks of the indexables.
+	 * Unschedules the WP-Cron job to check the permalink_structure status.
 	 *
-	 * @deprecated 15.1
-	 * @codeCoverageIgnore
-	 *
-	 * @param string      $type    The type of the indexable.
-	 * @param null|string $subtype The subtype. Can be null.
-	 * @param string      $reason  The reason that the permalink has been changed.
+	 * @return void
 	 */
-	public function reset_permalink_indexables( $type, $subtype = null, $reason = Indexing_Reasons::REASON_PERMALINK_SETTINGS ) {
-		_deprecated_function( __METHOD__, 'WPSEO 15.1', 'Indexable_Helper::reset_permalink_indexables' );
+	public function unschedule_cron() {
+		if ( ! \wp_next_scheduled( 'wpseo_permalink_structure_check' ) ) {
+			return;
+		}
 
-		$this->indexable_helper->reset_permalink_indexables( $type, $subtype, $reason );
+		\wp_clear_scheduled_hook( 'wpseo_permalink_structure_check' );
 	}
 }

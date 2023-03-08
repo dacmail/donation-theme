@@ -39,6 +39,8 @@
 				unregister_setting('wp_ccsve-group', 'ccsve_tax_terms');
 				unregister_setting('wp_ccsve-group', 'ccsve_custom_fields');
 				unregister_setting('wp_ccsve-group', 'ccsve_woocommerce_fields');
+				//since 1.5.5 - July 11, 2020
+				unregister_setting('wp_ccsve-group', 'ccsve_date_min');
 
 				delete_option('wp_ccsve-group');
 			}

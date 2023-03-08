@@ -68,12 +68,43 @@
 		$ccsve_generate_tax_terms          = get_option('ccsve_tax_terms');
 		$ccsve_generate_woocommerce_fields = get_option('ccsve_woocommerce_fields');
 
+		//since 1.5.5 - July 11, 2020
+		$date_query = false;
+		//$ccsve_date_min = isset($_REQUEST['date_min']) && $_REQUEST['date_min'] ? wp_kses($_REQUEST['date_min'], '') : get_option('ccsve_date_min');
+
+		if(isset($_REQUEST['date_min']) && $_REQUEST['date_min']) {
+			$ccsve_date_min = isset($_REQUEST['date_min']) && $_REQUEST['date_min'] ? wp_kses($_REQUEST['date_min'], '') : get_option('ccsve_date_min');
+		} else {
+			$ccsve_date_min = get_option('ccsve_date_min');
+		}
+
+		if($ccsve_date_min){
+			if(wp_checkdate( (int)date('m', strtotime($ccsve_date_min)), (int)date('d', strtotime($ccsve_date_min)), (int)date('Y', strtotime($ccsve_date_min)), date('Y-m-d', strtotime($ccsve_date_min)))) {
+				$date_query = array(
+								array(
+									'after'     => date('Y-m-d', strtotime($ccsve_date_min)),
+									'inclusive' => true,
+								),
+							);
+			}
+		}
+
+		// Debug
+		/*if(current_user_can('administrator')) {
+			echo '<pre>';
+			//var_dump($ccsve_date_min);
+			var_dump($date_query);
+			echo '</pre>';
+			exit;
+		}*/
+
 		// Are we getting only parents or children?
 		if($export_only == 'parents') {
 
 			// Query the DB for all instances of the custom post type
 			$ccsve_generate_query = new WP_Query(
-				array(
+				apply_filters('ccsve_generate_query', array(
+					'ignore_sticky_posts' => true,
 					'post_type'      => $ccsve_generate_post_type,
 					'post_parent'    => 0,
 					'post_status'    => $ccsve_generate_post_status,
@@ -81,21 +112,23 @@
 					'author'         => $user_id,
 					'order'          => 'ASC',
 					'post_in'        => $specific_posts,
+					//since 1.5.4.2 - July 11, 2020
+					'date_query'     => $date_query,
 					//'orderby' => 'name'
-				)
+				))
 			);
 		}
 		elseif($export_only == 'children') {
 
 			// Query the DB for all instances of the custom post type
 			$csv_parent_export = new WP_Query(
-				array(
+				apply_filters('ccsve_generate_query', array(
 					'post_type'      => $ccsve_generate_post_type,
 					'post_parent'    => 0,
 					'post_status'    => $ccsve_generate_post_status,
 					'posts_per_page' => -1,
 					'author'         => $user_id
-				)
+				))
 			);
 
 			$parents_ids_array = array();
@@ -106,7 +139,8 @@
 			endforeach;
 
 			$ccsve_generate_query = new WP_Query(
-				array(
+				apply_filters('ccsve_generate_query', array(
+					'ignore_sticky_posts' => true,
 					'post_type'      => $ccsve_generate_post_type,
 					'post_status'    => $ccsve_generate_post_status,
 					'exclude'        => $parents_ids_array,
@@ -114,8 +148,10 @@
 					'author'         => $user_id,
 					'order'          => 'ASC',
 					'post_in'        => $specific_posts,
+					//since 1.5.4.2 - July 11, 2020
+					'date_query'     => $date_query,
 					//'orderby' => 'name'
-				)
+				))
 			);
 		}
 		else {
@@ -123,12 +159,15 @@
 			// Query the DB for all instances of the custom post type
 			$ccsve_generate_query = new WP_Query(
 				array(
+					'ignore_sticky_posts' => true,
 					'post_type'      => $ccsve_generate_post_type,
 					'post_status'    => $ccsve_generate_post_status,
 					'posts_per_page' => -1,
 					'author'         => $user_id,
 					'order'          => 'ASC',
 					'post__in'       => $specific_posts,
+					//since 1.5.4.2 - July 11, 2020
+					'date_query'     => $date_query,
 					//'orderby' => 'name'
 				)
 			);
@@ -213,7 +252,12 @@
 
 		endforeach;
 
-		//exit;
+		$ccsve_generate_value_arr = apply_filters('ccsve_export_returns', $ccsve_generate_value_arr);
+
+		/*echo '<pre>';
+		var_dump($ccsve_generate_value_arr);
+		echo '</pre>';
+		die;*/
 
 		// create a new array of values that reorganizes them in a new multidimensional array where each sub-array contains all of the values for one custom post instance
 		$ccsve_generate_value_arr_new = array();
@@ -225,6 +269,13 @@
 				$i++;
 			}
 		}
+
+		/*echo '<pre>';
+		var_dump($ccsve_generate_value_arr_new);
+		echo '</pre>';
+		die;*/
+
+		// CSV
 
 		if($ccsve_export_check === 'csv') {
 			$csv_delimiter               = get_option('ccsve_delimiter');
@@ -249,9 +300,23 @@
 			foreach($ccsve_generate_value_arr_new as $data) {
 				// Add a header row if it hasn't been added yet -- using custom field keys from first array
 				if(!$headerDisplayed) {
-					fputcsv($fh, array_keys($ccsve_generate_value_arr));
+
+					fputcsv($fh, array_keys($ccsve_generate_value_arr), $csv_delimiter);
+					
+					/*echo '<pre>';
+					//var_dump($ccsve_generate_value_arr);
+					var_dump(array_keys($ccsve_generate_value_arr));
+					echo '</pre>';
+					die;*/
+
 					$headerDisplayed = true;
 				}
+
+				/*echo '<pre>';
+				//var_dump($data);
+				var_dump(array_keys($ccsve_generate_value_arr));
+				echo '</pre>';
+				die;*/
 
 				// Put the data from the new multi-dimensional array into the stream
 				fputcsv($fh, $data, $csv_delimiter);
@@ -263,7 +328,7 @@
 			exit;
 		}
 
-		// PHP
+		// XLS
 
 		if($ccsve_export_check === 'xls') {
 			/**
@@ -291,7 +356,7 @@
 			$flag = false;
 			foreach($ccsve_generate_value_arr_new as $data) {
 				if(!$flag) {
-					echo implode("\t", array_keys($ccsve_generate_value_arr)) . "\r\n";
+					echo implode("\t", array_map('utf8_decode', array_keys($ccsve_generate_value_arr))) . "\r\n";
 					$flag = true;
 				}
 				array_walk($data, 'cleanData');

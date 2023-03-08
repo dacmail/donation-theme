@@ -20,6 +20,12 @@
 			array(),
 			SIMPLE_CSV_EXPORTER_VERSION
 		);
+
+		//since 1.5.5 - July 15, 2020
+		wp_enqueue_script('jquery-ui-datepicker');
+		wp_register_style('jquery-ui', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css');
+		wp_enqueue_style('jquery-ui');
+
 	}
 
 	add_action("admin_enqueue_scripts", "simple_csv_exporter_assets");

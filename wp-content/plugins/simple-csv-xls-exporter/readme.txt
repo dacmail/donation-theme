@@ -2,19 +2,19 @@
 
 Contributors: Shambix, Dukessa, thaikolja, akforsyt
 Author URL: https://www.shambix.com
-Requires at least: 5
-Tested up to: 5.3
-Stable tag: trunk
-License: GPLv3
-License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: csv, xls, export, excel, custom fields, custom post types, export products, export posts
+Requires at least: 5
+Tested up to: 5.9
+Stable tag: trunk
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Export any content to CSV or XLS, through a link/button, from backend / frontend. Supports custom post types, WooCommerce, custom taxonomies, post statuses, users & fields.
 
 == Description ==
 
 This plugin allows you to export your posts to CSV or XLS file, through a simple link/button, from either backend or frontend.
-**Make sure you are using PHP 7.3, if you see any errors, older versions will not be supported anymore.**
+**Make sure you are using PHP 7.3+, if you see any errors, older versions will not be supported anymore. The plugin has been tested up to PHP 8.1.**
 
 **Supports**
 
@@ -129,6 +129,73 @@ You need the parameter `?specific_posts` in the export url.
 
 Eg. `https://yoursite.com/?export=xls&specific_posts=1,2,3`
 
+= Can I export only posts from a specific date onward? =
+Yes, as of v. 1.5.5.
+
+To export the file with content created from a specific date, either use the global options or add this to your url `?date_min`
+
+The date format, when using the url parameter, must be `mm-dd-yyyy`.
+
+Eg. `https://yoursite.com/?export=csv&date_min=07-11-2020` (July 11 2020)
+
+= Can I populate certain data in my export, in a custom way, through a filter? =
+Yes, as of v. 1.5.7
+
+Eg.
+
+`function ccsve_generate_query_callback($query_arr) {
+
+    if (isset($_REQUEST['order_id']) && $_REQUEST['order_id']) {
+        $query_arr['meta_key'] = '_order_id';
+        $query_arr['meta_value'] = $_REQUEST['order_id'];
+    }
+
+    return $query_arr;
+}
+add_filter('ccsve_generate_query', 'ccsve_generate_query_callback');`
+
+Where `order_id` is an assigned data to export, from plugin's options, `_order_id` is the name of the custom column you need and its value will be `order_id`.
+
+Please remember to create your query according to [WP Query](https://developer.wordpress.org/reference/classes/wp_query/) guidelines.
+Eg. If you want to add a custom date export, you will need to follow the same query construct shown [here](https://developer.wordpress.org/reference/classes/wp_query/#date-parameters).
+
+For your own reference, you can find the original export query, and the filter hook, in [this](https://github.com/Jany-M/simple-csv-xls-exporter/blob/master/process/simple_csv_xls_exporter_csv_xls.php) plugin file.
+
+= Can I populate certain data in my export, in a custom way, through a shortcode in the url parameter? =
+
+Yes.
+
+Eg.
+
+This is a solution provided by Jayanta Sarkar, to generate custom post IDs through a function and then use the result as a shortcode, inside the export url, as a parameter value.
+
+This url cannot be used directly however (copy and paste it in the browser url bar, it must be printed somewhere on a page of your website - backend or frontend).
+
+`add_shortcode('search_post_ids', 'search_posts_function');
+
+function  search_posts_function(){
+    $search_term = $_GET['s'];
+    $args = array(
+        's' => $search_term,
+        'posts_per_page' => -1,
+        'post_type' => 'your_custom_post_type'
+    );
+    $query = new WP_Query( $args );
+    if ( $query->have_posts() ) {
+        while ( $query->have_posts() ) {
+            $query->the_post();
+            $ID_string .= get_the_ID().",";
+        }
+    }
+    return $ID_string; 
+}`
+
+Adjust the above function to your needs.
+
+Then use the shortcode in a url, like this:
+`https://yoursite.com/?export=xls&specific_posts=[shortcode]`
+
+
 == Screenshots ==
 
 1. Settings Page
@@ -136,6 +203,26 @@ Eg. `https://yoursite.com/?export=xls&specific_posts=1,2,3`
 3. Settings Page
 
 == Changelog ==
+
+= 1.5.8 =
+* Fixed bug in csv header (custom delimiter not working)
+* Tested with WP 5.9
+* Tested with PHP 8.1
+* Added FAQs
+
+= 1.5.7 = 
+* Add support for xls headers to be utf-8 decoded (thanks to [RubenMartins](https://github.com/Jany-M/simple-csv-xls-exporter/pull/3/commits/b4a98aa8853fe8edaf61b3ceaa9b77cc286845d0))
+* Fix date_format and standardize to 'Y-m-d' format (thanks to [RubenMartins](https://github.com/Jany-M/simple-csv-xls-exporter/pull/4/commits/c68899e19703a8690c7d0fe01b1ef49760fbd46a))
+* Add support to edit query via filter. Allow to change parameters via filter to for example add filter for meta_key/meta_value or other change to the query
+. (thanks to [RubenMartins](https://github.com/Jany-M/simple-csv-xls-exporter/pull/5/commits/962295e7488c32a97e3b9b4903b01428ba3ce735))
+
+= 1.5.6 = 
+* Re-introduced the `ccsve_export_returns` filter hook
+
+= 1.5.5 = 
+* Added a Date global option, to export content only from that date onward
+* Added `date_min` parameter (will override the global option)
+* The export now ignores sticky posts
 
 = 1.5.4.1 =
 
