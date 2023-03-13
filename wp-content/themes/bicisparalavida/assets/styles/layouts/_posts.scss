@@ -19,10 +19,6 @@
     font-weight: bold;
     line-height: 1.33;
 
-    @media (min-width: $md) {
-
-    }
-
     a {
       color: $dark;
     }
@@ -43,5 +39,11 @@
 
   &-pagination {
     text-align: center;
+  }
+
+  &--image {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: rem(32px);
   }
 }
