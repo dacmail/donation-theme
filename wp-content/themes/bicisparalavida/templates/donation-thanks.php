@@ -21,7 +21,7 @@
     <div class="options">
       <div class="option">
         <h3>Opción 1</h3>
-        <p>Busca tu oficina más cercana de SEUR o SKODA en el mapa que encontrarás en la <a href="<?= home_url('/') ?>">página principal</a> y lleva tu bicicleta junto con el código que te hemos facilitado.</p>
+        <p>Busca tu oficina más cercana de SEUR en el mapa que encontrarás en la <a href="<?= home_url('/') ?>">página principal</a> y lleva tu bicicleta junto con el código que te hemos facilitado.</p>
       </div>
     </div>
     <h3>¡Gracias por contribuir en el proyecto ‘Bicis para la Vida by Skoda’!</h3>

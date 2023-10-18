@@ -253,7 +253,7 @@ function ungrynerd_add_acf_columns($columns) {
     'title' => __('Codigo de seguimiento', 'ungrynerd'),
     'cp' => __('Codigo Postal', 'ungrynerd'),
     'status'   => __('Estado', 'ungrynerd'),
-    'skoda'   => __('¿Cesión Skoda?', 'ungrynerd'),
+    //'skoda'   => __('¿Cesión Skoda?', 'ungrynerd'),
     'date' => __('Fecha', 'ungrynerd')
   );
  }
@@ -272,10 +272,10 @@ function ungrynerd_add_acf_columns($columns) {
       $status = get_post_meta($post_id, 'status', true) ? get_post_meta($post_id, 'status', true) :  0;
       echo $status_names[$status];
       break;
-    case 'skoda':
-      $skoda = get_post_meta($post_id, 'skoda', true) ? 'Sí' : 'No';
-      echo $skoda;
-      break;
+    // case 'skoda':
+    //   $skoda = get_post_meta($post_id, 'skoda', true) ? 'Sí' : 'No';
+    //   echo $skoda;
+    //   break;
   }
  }
  add_action('manage_un_donation_posts_custom_column', __NAMESPACE__ . '\\ungryenrd_un_donation_custom_column', 10, 2);
