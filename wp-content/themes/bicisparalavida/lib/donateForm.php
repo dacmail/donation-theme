@@ -44,8 +44,8 @@ class DonateForm
       )
     ));
     if (!is_wp_error($donation)) {
-      return $this->donation = $donation;
       $this->suscribe_to_newsletter();
+      return $this->donation = $donation;
     } else {
       throw new \Exception('Ha ocurrido un problema al registrar la donación');
     }
@@ -73,7 +73,7 @@ class DonateForm
       'listIds' => [14]
     ]);
     try {
-      $result = $apiInstance->createContact($createContact);
+      $apiInstance->createContact($createContact);
     } catch (\Exception $e) {
       echo 'Exception when calling ContactsApi->createContact: ', $e->getMessage(), PHP_EOL;
     }
