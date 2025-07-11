@@ -1,4 +1,22 @@
 <?php
+
+/**
+ * Composer autoload
+ */
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+  require_once __DIR__ . '/vendor/autoload.php';
+}
+
+/**
+ * Load environment variables
+ */
+if (class_exists('Dotenv\Dotenv')) {
+  $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+  if (file_exists(__DIR__ . '/.env')) {
+    $dotenv->load();
+  }
+}
+
 /**
  * Sage includes
  *
@@ -32,12 +50,12 @@ add_action(
   'template_redirect',
   function () {
     if (is_singular('post')) {
-        global $wp_query;
-        $wp_query->posts = [];
-        $wp_query->post = null;
-        $wp_query->set_404();
-        status_header(404);
-        nocache_headers();
+      global $wp_query;
+      $wp_query->posts = [];
+      $wp_query->post = null;
+      $wp_query->set_404();
+      status_header(404);
+      nocache_headers();
     }
   }
 );

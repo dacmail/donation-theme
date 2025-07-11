@@ -8,7 +8,7 @@
           <p>Introduce esta hoja en el embalaje de tu bicicleta para llevar el seguimiento de la donación. </p>
           <h3>IMPORTANTE!</h3>
           <p>Para poder hacer un correcto seguimiento de tu bicicleta, el número de serie generado en este documento debe ir incorporado en la bicicleta.</p>
-          <?= do_shortcode('[qrcodetag]' . get_the_title() . '[/qrcodetag]') ?>
+          <?= do_shortcode('[kaya_qrcode content="' . get_the_title() . '"]') ?>
         </div>
         <?php the_title(); ?>
       </div>
@@ -17,10 +17,10 @@
     </div>
   </article>
   <section class="instructions">
-    <p>Ya estamos casi, te damos dos opciones para la entrega de tu bicicleta:</p>
+    <p>Ya estamos casi, sigue estos pasos para la entrega de tu bicicleta:</p>
     <div class="options">
       <div class="option">
-        <h3>Opción 1</h3>
+        <h3>SEUR</h3>
         <p>Busca tu oficina más cercana de SEUR en el mapa que encontrarás en la <a href="<?= home_url('/') ?>">página principal</a> y lleva tu bicicleta junto con el código que te hemos facilitado.</p>
       </div>
     </div>
